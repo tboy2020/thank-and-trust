@@ -113,6 +113,28 @@
     background:rgba(46,125,107,.1);border-radius:12px;padding:4px 10px;
   }
   .phrase.pulse{background:#FFF7E0;box-shadow:0 0 0 3px var(--gold-lite), 0 6px 14px rgba(0,0,0,.18);}
+  .phrase .side{display:flex;align-items:center;gap:10px;}
+  .phrase .rm{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:18px;line-height:1;
+    color:#b4472f;background:rgba(180,71,47,.1);border-radius:50%;
+    width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  }
+  .phrase .rm:active{transform:scale(.9);}
+
+  .addphrase{display:flex;gap:8px;margin-top:12px;}
+  .addphrase input{
+    flex:1;border:1px dashed var(--line);border-radius:14px;padding:14px 16px;
+    font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--navy);
+    background:rgba(255,255,255,.9);
+  }
+  .addphrase input:focus{outline:2px solid var(--gold-lite);outline-offset:1px;border-style:solid;}
+  .addphrase input::placeholder{color:#98a4b2;font-style:italic;}
+  .addp-btn{
+    font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    font-size:14px;border:0;border-radius:14px;padding:0 18px;cursor:pointer;color:var(--navy);
+    background:linear-gradient(180deg,var(--gold-lite),var(--gold));box-shadow:0 6px 14px rgba(201,162,39,.28);
+  }
+  .addp-btn:active{transform:scale(.98);}
 
   .row{display:flex;gap:10px;margin-top:16px;}
   .btn{
@@ -236,6 +258,11 @@
 
     <div class="phrases" id="phraseList"></div>
 
+    <div class="addphrase">
+      <input id="newPhrase" type="text" maxlength="40" placeholder="Add your own… e.g. Thank You Abba" onkeydown="if(event.key==='Enter'){addPhrase();}">
+      <button class="addp-btn" onclick="addPhrase()">+ Add</button>
+    </div>
+
     <div class="row">
       <button class="btn listen" id="listenBtn" onclick="toggleListen()">🎙 Listen &amp; count</button>
     </div>
@@ -284,13 +311,14 @@
 (function(){
   "use strict";
 
-  var PHRASES = [
+  var PRESETS = [
     { id:"jesus",  txt:"Thank You Jesus",         hear:["thank you jesus","thankyou jesus"] },
     { id:"lord",   txt:"Thank You Lord",          hear:["thank you lord","thankyou lord"] },
     { id:"father", txt:"Thank You Father",        hear:["thank you father","thankyou father"] },
     { id:"jit",    txt:"Jesus, I thank You",      hear:["jesus i thank you","jesus i think you"] },
     { id:"hs",     txt:"Holy Spirit, I thank You",hear:["holy spirit i thank you","holy spirit i think you"] }
   ];
+  var PHRASES = PRESETS.slice(); // presets + custom, rebuilt at runtime
   var MILESTONES = [7,12,21,40,70,77,100,144,300,490,777,1000];
   var MILE_WORD = {
     7:"Perfection & rest",12:"Governmental fullness",21:"Answered on the way",
@@ -299,7 +327,7 @@
     490:"Seventy times seven",777:"Threefold perfection",1000:"A thousand generations"
   };
 
-  var K_COUNTS="tt_counts", K_TOTAL="tt_total", K_TODAY="tt_today", K_DATE="tt_date", K_TRUST="tt_trust";
+  var K_COUNTS="tt_counts", K_TOTAL="tt_total", K_TODAY="tt_today", K_DATE="tt_date", K_TRUST="tt_trust", K_CUSTOM="tt_custom";
 
   function load(k,d){ try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;} }
   function save(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
@@ -310,21 +338,67 @@
   var today  = load(K_TODAY,0);
   var lastDate = load(K_DATE,"");
   var trust  = load(K_TRUST,[]);
+  var custom = load(K_CUSTOM,[]);   // [{id,txt,hear:[key]}]
 
   // roll over the "today" counter if the day changed
   if(lastDate !== todayStr()){ today=0; lastDate=todayStr(); save(K_TODAY,0); save(K_DATE,lastDate); }
 
-  // ---- render phrase buttons ----
+  // ---- render phrase buttons (presets + custom) ----
   var listEl=document.getElementById("phraseList");
-  PHRASES.forEach(function(p,i){
-    if(counts[p.id]==null) counts[p.id]=0;
-    var b=document.createElement("button");
-    b.className="phrase"+(i===4?" full":"");
-    b.setAttribute("aria-label",p.txt+", tap to add one");
-    b.innerHTML='<span class="txt">'+p.txt+'</span><span class="tally" id="t_'+p.id+'">'+counts[p.id]+'</span>';
-    b.onclick=function(){ bump(p.id); flash(b); };
-    listEl.appendChild(b);
-  });
+
+  function keyify(s){ return s.toLowerCase().replace(/[^a-z\s]/g," ").replace(/\s+/g," ").trim(); }
+  function rebuildPhrases(){ PHRASES = PRESETS.concat(custom); }
+
+  function renderPhrases(){
+    rebuildPhrases();
+    listEl.innerHTML="";
+    var n=PHRASES.length;
+    PHRASES.forEach(function(p,i){
+      if(counts[p.id]==null) counts[p.id]=0;
+      var isCustom=(p.id.charAt(0)==="c");
+      var b=document.createElement("button");
+      b.className="phrase"+((n%2===1 && i===n-1)?" full":"");
+      b.setAttribute("aria-label",p.txt+", tap to add one");
+      var removeBtn=isCustom?'<span class="rm" title="Remove" aria-label="Remove phrase">&times;</span>':'';
+      b.innerHTML='<span class="txt">'+escapeHtml(p.txt)+'</span>'
+                 +'<span class="side">'+removeBtn+'<span class="tally" id="t_'+p.id+'">'+(counts[p.id]||0)+'</span></span>';
+      b.onclick=function(ev){
+        if(ev.target && ev.target.className==="rm"){ ev.stopPropagation(); removePhrase(p.id); return; }
+        bump(p.id); flash(b);
+      };
+      listEl.appendChild(b);
+    });
+  }
+
+  window.addPhrase=function(){
+    var inp=document.getElementById("newPhrase");
+    var v=(inp.value||"").trim();
+    if(!v) { inp.focus(); return; }
+    if(v.length>40) v=v.substring(0,40);
+    var key=keyify(v);
+    if(!key){ inp.focus(); return; }
+    // avoid duplicates against existing phrases
+    var dup=PHRASES.some(function(p){ return (p.hear||[]).indexOf(key)>-1 || keyify(p.txt)===key; });
+    if(dup){ popToast("Already on your list","That thanksgiving is already here."); inp.value=""; return; }
+    var id="c"+Date.now();
+    custom.push({ id:id, txt:v, hear:[key] });
+    counts[id]=0;
+    save(K_CUSTOM,custom); save(K_COUNTS,counts);
+    inp.value=""; renderPhrases();
+    popToast("Added","“"+v+"” is now on your altar. Let everything that hath breath praise the LORD.");
+  };
+
+  function removePhrase(id){
+    var item=null; for(var i=0;i<custom.length;i++){ if(custom[i].id===id){ item=custom[i]; break; } }
+    if(!item) return;
+    if(!confirm("Remove “"+item.txt+"” from your list? Your all-time total stays.")) return;
+    custom=custom.filter(function(p){ return p.id!==id; });
+    delete counts[id];
+    save(K_CUSTOM,custom); save(K_COUNTS,counts);
+    renderPhrases();
+  }
+
+  renderPhrases();
 
   function flash(el){ el.classList.add("pulse"); setTimeout(function(){el.classList.remove("pulse");},220); }
 
@@ -417,7 +491,7 @@
   // ---- backup & restore (never lose your trust entries) ----
   window.backupData=function(){
     var payload={ app:"thank-and-trust", v:1, exported:new Date().toISOString(),
-      counts:counts, total:total, today:today, date:lastDate, trust:trust };
+      counts:counts, total:total, today:today, date:lastDate, trust:trust, custom:custom };
     var str=JSON.stringify(payload);
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(str).then(
@@ -436,8 +510,9 @@
       if(typeof d.today==="number") today=d.today;
       if(d.date) lastDate=d.date;
       if(d.trust) trust=d.trust;
-      save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_DATE,lastDate); save(K_TRUST,trust);
-      refreshTotals(); renderTrust();
+      if(d.custom) custom=d.custom;
+      save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_DATE,lastDate); save(K_TRUST,trust); save(K_CUSTOM,custom);
+      renderPhrases(); refreshTotals(); renderTrust();
       popToast("Restored","Welcome back — nothing lost.");
     }catch(e){ popToast("Couldn’t read that","Make sure you pasted the full backup text."); }
   };
@@ -552,7 +627,7 @@
   renderTrust();
 
   // save on hide (mobile safety)
-  document.addEventListener("visibilitychange",function(){ if(document.hidden){ save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_TRUST,trust); } });
+  document.addEventListener("visibilitychange",function(){ if(document.hidden){ save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_TRUST,trust); save(K_CUSTOM,custom); } });
 })();
 </script>
 </body>

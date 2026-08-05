@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F2C4C">
+<title>Thank &amp; Trust</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0F2C4C;
+    --navy-2:#153a63;
+    --gold:#C9A227;
+    --gold-lite:#E6C766;
+    --verd:#2E7D6B;
+    --verd-lite:#3C9C86;
+    --cream:#F6F1E4;
+    --ink:#12212f;
+    --paper:#FBF8F0;
+    --line:rgba(201,162,39,.28);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #1b436f 0%, var(--navy) 55%, #0a2038 100%);
+    min-height:100vh;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:18px 16px 40px;}
+
+  /* Header */
+  header{text-align:center;padding:14px 0 8px;}
+  .eyebrow{
+    font-family:'Saira Condensed',sans-serif;
+    letter-spacing:.32em;text-transform:uppercase;
+    font-size:12px;color:var(--gold-lite);font-weight:600;
+  }
+  h1{
+    font-family:'Saira Condensed',sans-serif;
+    font-weight:700;letter-spacing:.02em;
+    font-size:40px;line-height:1;margin:6px 0 8px;
+    color:#fff;text-transform:uppercase;
+  }
+  h1 .amp{color:var(--gold);font-family:'Fraunces',serif;font-style:italic;font-weight:500;text-transform:none;font-size:34px;}
+  .verse{
+    font-family:'Fraunces',serif;font-style:italic;
+    color:#e9e3d1;font-size:15px;line-height:1.5;
+    max-width:440px;margin:0 auto;
+  }
+  .verse .ref{display:block;font-size:12px;color:var(--gold-lite);font-style:normal;letter-spacing:.06em;margin-top:4px;}
+
+  /* Tabs */
+  .tabs{
+    display:flex;gap:6px;background:rgba(255,255,255,.06);
+    border:1px solid var(--line);border-radius:14px;padding:5px;margin:18px 0 16px;
+  }
+  .tab{
+    flex:1;font-family:'Saira Condensed',sans-serif;font-weight:600;
+    letter-spacing:.12em;text-transform:uppercase;font-size:14px;
+    color:#cdd8e6;background:transparent;border:0;border-radius:10px;
+    padding:11px 8px;cursor:pointer;transition:.18s;
+  }
+  .tab.active{background:linear-gradient(180deg,var(--gold-lite),var(--gold));color:var(--navy);box-shadow:0 6px 16px rgba(201,162,39,.25);}
+
+  .panel{display:none;animation:fade .3s ease;}
+  .panel.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  /* Count display */
+  .count-card{
+    background:linear-gradient(180deg,var(--paper),#fff);
+    border:1px solid var(--line);border-radius:20px;
+    padding:20px 18px;text-align:center;
+    box-shadow:0 14px 34px rgba(0,0,0,.28);
+  }
+  .count-num{
+    font-family:'Saira Condensed',sans-serif;font-weight:700;
+    font-size:76px;line-height:.9;color:var(--navy);
+    letter-spacing:.01em;
+  }
+  .count-label{
+    font-family:'Saira Condensed',sans-serif;letter-spacing:.22em;
+    text-transform:uppercase;font-size:12px;color:var(--verd);font-weight:600;margin-top:4px;
+  }
+  .today{
+    margin-top:10px;font-size:13px;color:#5b6b7a;
+  }
+  .today b{color:var(--gold);font-weight:700;}
+
+  /* Phrase buttons */
+  .phrases{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px;}
+  .phrase{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    border:1px solid var(--line);border-radius:16px;cursor:pointer;
+    background:rgba(255,255,255,.94);
+    padding:16px 18px;text-align:left;width:100%;
+    transition:transform .06s ease, box-shadow .18s, background .18s;
+    box-shadow:0 6px 14px rgba(0,0,0,.18);
+  }
+  .phrase:active{transform:scale(.98);}
+  .phrase .txt{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
+    font-size:19px;color:var(--navy);
+  }
+  .phrase .tally{
+    font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:24px;
+    min-width:48px;text-align:center;color:var(--verd);
+    background:rgba(46,125,107,.1);border-radius:12px;padding:4px 10px;
+  }
+  .phrase.pulse{background:#FFF7E0;box-shadow:0 0 0 3px var(--gold-lite), 0 6px 14px rgba(0,0,0,.18);}
+
+  .row{display:flex;gap:10px;margin-top:16px;}
+  .btn{
+    flex:1;font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;font-size:13px;border-radius:12px;padding:12px;cursor:pointer;
+    border:1px solid var(--line);background:rgba(255,255,255,.08);color:#e9e3d1;transition:.16s;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn.listen.on{background:linear-gradient(180deg,var(--verd-lite),var(--verd));color:#fff;border-color:transparent;}
+  .btn.ghost{background:transparent;}
+  .hint{font-size:12px;color:#9fb0c2;text-align:center;margin-top:12px;line-height:1.5;}
+
+  /* Trust tab */
+  .lead{
+    font-family:'Fraunces',serif;font-style:italic;color:#e9e3d1;
+    font-size:16px;line-height:1.55;text-align:center;margin:4px 0 16px;
+  }
+  .lead .ref{display:block;font-style:normal;font-size:12px;color:var(--gold-lite);letter-spacing:.06em;margin-top:6px;}
+  .add-box{
+    background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:16px;
+    padding:14px;box-shadow:0 8px 20px rgba(0,0,0,.2);
+  }
+  .add-box .pre{
+    font-family:'Saira Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;
+    font-size:12px;color:var(--verd);font-weight:600;margin-bottom:8px;
+  }
+  textarea{
+    width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;
+    font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);resize:vertical;min-height:64px;
+    background:#fff;
+  }
+  textarea:focus{outline:2px solid var(--gold-lite);outline-offset:1px;}
+  .add-btn{
+    margin-top:10px;width:100%;font-family:'Saira Condensed',sans-serif;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;font-size:14px;border:0;border-radius:12px;
+    padding:13px;cursor:pointer;color:var(--navy);
+    background:linear-gradient(180deg,var(--gold-lite),var(--gold));box-shadow:0 6px 16px rgba(201,162,39,.3);
+  }
+  .add-btn:active{transform:scale(.99);}
+
+  .section-h{
+    font-family:'Saira Condensed',sans-serif;letter-spacing:.2em;text-transform:uppercase;
+    font-size:12px;color:var(--gold-lite);font-weight:600;margin:22px 4px 10px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .section-h::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .item{
+    background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:14px;
+    padding:14px 14px 12px;margin-bottom:10px;box-shadow:0 6px 14px rgba(0,0,0,.16);
+  }
+  .item.done{background:rgba(46,125,107,.12);border-color:rgba(46,125,107,.4);}
+  .item .body{font-size:15px;line-height:1.5;color:var(--navy);}
+  .item.done .body{color:var(--verd);}
+  .item .meta{font-size:11px;color:#8a97a6;margin-top:6px;letter-spacing:.03em;}
+  .item .actions{display:flex;gap:8px;margin-top:10px;}
+  .mini{
+    font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    font-size:12px;border-radius:10px;padding:8px 12px;cursor:pointer;border:1px solid var(--line);
+    background:#fff;color:var(--navy);
+  }
+  .mini.recv{background:linear-gradient(180deg,var(--verd-lite),var(--verd));color:#fff;border-color:transparent;}
+  .mini.del{color:#b4472f;border-color:rgba(180,71,47,.35);}
+  .mini.undo{color:#6b6250;}
+  .empty{
+    text-align:center;color:#9fb0c2;font-family:'Fraunces',serif;font-style:italic;
+    font-size:15px;padding:18px 10px;
+  }
+
+  footer{
+    text-align:center;margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+  }
+  footer .g{
+    font-family:'Fraunces',serif;font-style:italic;color:var(--gold-lite);font-size:15px;
+  }
+  footer .amhg{font-family:'Saira Condensed',sans-serif;letter-spacing:.3em;font-size:11px;color:#7f8ea0;margin-top:6px;text-transform:uppercase;}
+
+  /* Toast / milestone */
+  #toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(120%);
+    background:linear-gradient(180deg,var(--navy-2),var(--navy));color:#fff;
+    border:1px solid var(--gold);border-radius:14px;padding:14px 20px;max-width:88%;
+    box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:60;text-align:center;transition:transform .4s cubic-bezier(.2,.9,.3,1.2);
+  }
+  #toast.show{transform:translateX(-50%) translateY(0);}
+  #toast .m1{font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-lite);font-size:14px;}
+  #toast .m2{font-family:'Fraunces',serif;font-style:italic;font-size:15px;margin-top:3px;}
+
+  canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:55;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important;}
+  }
+  @media(min-width:520px){
+    .phrases{grid-template-columns:1fr 1fr;}
+    .phrases .full{grid-column:1/-1;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Cornerstone &bull; Family Altar</div>
+    <h1>Thank <span class="amp">&amp;</span> Trust</h1>
+    <p class="verse">In every thing give thanks: for this is the will of God in Christ Jesus concerning you.
+      <span class="ref">1 Thessalonians 5:18 &bull; KJV</span></p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" id="tabThank" onclick="showTab('thank')">Thank</button>
+    <button class="tab" id="tabTrust" onclick="showTab('trust')">Trust</button>
+  </div>
+
+  <!-- THANK PANEL -->
+  <section class="panel active" id="panThank">
+    <div class="count-card">
+      <div class="count-num" id="totalNum">0</div>
+      <div class="count-label">Thanksgivings unto the Lord</div>
+      <div class="today">Today: <b id="todayNum">0</b> &nbsp;&bull;&nbsp; Streak keeps the altar burning</div>
+    </div>
+
+    <div class="phrases" id="phraseList"></div>
+
+    <div class="row">
+      <button class="btn listen" id="listenBtn" onclick="toggleListen()">🎙 Listen &amp; count</button>
+    </div>
+    <div class="row">
+      <button class="btn ghost" onclick="resetToday()">Reset today</button>
+      <button class="btn ghost" onclick="resetAll()">Reset all</button>
+    </div>
+    <p class="hint" id="listenHint">Tap a phrase each time you say it. Or turn on “Listen &amp; count” and let it hear you — say the words out loud and it will tally them for you.</p>
+  </section>
+
+  <!-- TRUST PANEL -->
+  <section class="panel" id="panTrust">
+    <p class="lead">What things soever ye desire, when ye pray, believe that ye receive them, and ye shall have them.
+      <span class="ref">Mark 11:24 &bull; KJV</span></p>
+
+    <div class="add-box">
+      <div class="pre">I trust the God and Father of our Lord Jesus to…</div>
+      <textarea id="trustInput" placeholder="e.g. …provide fully for my family this month, in Jesus’ name."></textarea>
+      <button class="add-btn" onclick="addTrust()">Commit it &amp; trust Him</button>
+    </div>
+
+    <div class="section-h">Standing in faith</div>
+    <div id="openList"></div>
+
+    <div class="section-h">Testimonies received</div>
+    <div id="doneList"></div>
+  </section>
+
+  <footer>
+    <div class="g">Glory to God alone</div>
+    <div class="amhg">AMHG</div>
+  </footer>
+</div>
+
+<div id="toast"><div class="m1"></div><div class="m2"></div></div>
+<canvas id="confetti"></canvas>
+
+<script>
+(function(){
+  "use strict";
+
+  var PHRASES = [
+    { id:"jesus",  txt:"Thank You Jesus",        hear:["thank you jesus"] },
+    { id:"lord",   txt:"Thank You Lord",         hear:["thank you lord"] },
+    { id:"father", txt:"Thank You Father",       hear:["thank you father"] },
+    { id:"jit",    txt:"Jesus, I thank You",     hear:["jesus i thank you"] },
+    { id:"hs",     txt:"Holy Spirit, I thank You",hear:["holy spirit i thank you"] }
+  ];
+  var MILESTONES = [7,12,21,40,70,77,100,144,300,490,777,1000];
+  var MILE_WORD = {
+    7:"Perfection & rest",12:"Governmental fullness",21:"Answered on the way",
+    40:"Testing turned to triumph",70:"Restoration",77:"Complete forgiveness",
+    100:"A hundredfold",144:"The sealed & the sure",300:"Gideon’s few, God’s many",
+    490:"Seventy times seven",777:"Threefold perfection",1000:"A thousand generations"
+  };
+
+  var K_COUNTS="tt_counts", K_TOTAL="tt_total", K_TODAY="tt_today", K_DATE="tt_date", K_TRUST="tt_trust";
+
+  function load(k,d){ try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;} }
+  function save(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+  function todayStr(){ var d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+
+  var counts = load(K_COUNTS,{});
+  var total  = load(K_TOTAL,0);
+  var today  = load(K_TODAY,0);
+  var lastDate = load(K_DATE,"");
+  var trust  = load(K_TRUST,[]);
+
+  // roll over the "today" counter if the day changed
+  if(lastDate !== todayStr()){ today=0; lastDate=todayStr(); save(K_TODAY,0); save(K_DATE,lastDate); }
+
+  // ---- render phrase buttons ----
+  var listEl=document.getElementById("phraseList");
+  PHRASES.forEach(function(p,i){
+    if(counts[p.id]==null) counts[p.id]=0;
+    var b=document.createElement("button");
+    b.className="phrase"+(i===4?" full":"");
+    b.setAttribute("aria-label",p.txt+", tap to add one");
+    b.innerHTML='<span class="txt">'+p.txt+'</span><span class="tally" id="t_'+p.id+'">'+counts[p.id]+'</span>';
+    b.onclick=function(){ bump(p.id); flash(b); };
+    listEl.appendChild(b);
+  });
+
+  function flash(el){ el.classList.add("pulse"); setTimeout(function(){el.classList.remove("pulse");},220); }
+
+  function bump(id){
+    counts[id]=(counts[id]||0)+1;
+    total++; today++;
+    save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_DATE,todayStr());
+    var t=document.getElementById("t_"+id); if(t) t.textContent=counts[id];
+    document.getElementById("totalNum").textContent=total;
+    document.getElementById("todayNum").textContent=today;
+    if(MILESTONES.indexOf(total)>-1){ celebrate(total); }
+  }
+
+  function refreshTotals(){
+    document.getElementById("totalNum").textContent=total;
+    document.getElementById("todayNum").textContent=today;
+    PHRASES.forEach(function(p){ var t=document.getElementById("t_"+p.id); if(t) t.textContent=counts[p.id]||0; });
+  }
+
+  // ---- reset ----
+  window.resetToday=function(){
+    if(!confirm("Reset today's count to 0? Your all-time total stays.")) return;
+    today=0; save(K_TODAY,0); document.getElementById("todayNum").textContent=0;
+  };
+  window.resetAll=function(){
+    if(!confirm("Reset ALL thanksgiving counts to 0? This clears every tally.")) return;
+    counts={}; total=0; today=0;
+    PHRASES.forEach(function(p){counts[p.id]=0;});
+    save(K_COUNTS,counts); save(K_TOTAL,0); save(K_TODAY,0);
+    refreshTotals();
+  };
+
+  // ---- tabs ----
+  window.showTab=function(which){
+    var thank=which==="thank";
+    document.getElementById("panThank").classList.toggle("active",thank);
+    document.getElementById("panTrust").classList.toggle("active",!thank);
+    document.getElementById("tabThank").classList.toggle("active",thank);
+    document.getElementById("tabTrust").classList.toggle("active",!thank);
+  };
+
+  // ---- TRUST ----
+  function renderTrust(){
+    var open=document.getElementById("openList"), done=document.getElementById("doneList");
+    open.innerHTML=""; done.innerHTML="";
+    var anyOpen=false, anyDone=false;
+    trust.forEach(function(item){
+      var div=document.createElement("div");
+      div.className="item"+(item.done?" done":"");
+      var meta = item.done
+        ? "Received "+item.doneOn+" &bull; Blessed be the God and Father of our Lord Jesus"
+        : "Committed "+item.on;
+      var acts = item.done
+        ? '<button class="mini undo" data-a="undo">Return to faith</button><button class="mini del" data-a="del">Remove</button>'
+        : '<button class="mini recv" data-a="recv">Received! 🙌</button><button class="mini del" data-a="del">Remove</button>';
+      div.innerHTML='<div class="body">'+escapeHtml(item.text)+'</div><div class="meta">'+meta+'</div><div class="actions">'+acts+'</div>';
+      div.querySelectorAll(".mini").forEach(function(btn){
+        btn.onclick=function(){ trustAction(item.id, btn.getAttribute("data-a")); };
+      });
+      if(item.done){ done.appendChild(div); anyDone=true; } else { open.appendChild(div); anyOpen=true; }
+    });
+    if(!anyOpen) open.innerHTML='<div class="empty">Write what you trust Him for. He is faithful that promised.</div>';
+    if(!anyDone) done.innerHTML='<div class="empty">Every answered prayer will land here as a testimony.</div>';
+  }
+
+  window.addTrust=function(){
+    var ta=document.getElementById("trustInput");
+    var v=(ta.value||"").trim();
+    if(!v){ ta.focus(); return; }
+    trust.unshift({ id:Date.now(), text:v, done:false, on:niceDate(), doneOn:"" });
+    save(K_TRUST,trust); ta.value=""; renderTrust();
+    popToast("Committed in faith","Now thank Him for it as done. — Mark 11:24");
+  };
+
+  function trustAction(id,a){
+    for(var i=0;i<trust.length;i++){
+      if(trust[i].id===id){
+        if(a==="recv"){ trust[i].done=true; trust[i].doneOn=niceDate(); miniConfetti(); popToast("Testimony!","Whoso offereth praise glorifieth me. — Psalm 50:23"); }
+        else if(a==="undo"){ trust[i].done=false; trust[i].doneOn=""; }
+        else if(a==="del"){ if(!confirm("Remove this entry?")) return; trust.splice(i,1); }
+        break;
+      }
+    }
+    save(K_TRUST,trust); renderTrust();
+  }
+
+  function niceDate(){ var d=new Date(); var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return m[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+
+  // ---- milestone + toast + confetti ----
+  function celebrate(n){
+    var w=MILE_WORD[n]||"Glory to God";
+    popToast(n+" thanksgivings", w+" — keep on giving thanks.");
+    bigConfetti();
+  }
+  var toast=document.getElementById("toast"), toastTimer=null;
+  function popToast(m1,m2){
+    toast.querySelector(".m1").textContent=m1;
+    toast.querySelector(".m2").textContent=m2;
+    toast.classList.add("show");
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){toast.classList.remove("show");},3200);
+  }
+
+  // confetti
+  var cv=document.getElementById("confetti"), ctx=cv.getContext("2d"), parts=[], raf=null;
+  function size(){ cv.width=window.innerWidth; cv.height=window.innerHeight; }
+  size(); window.addEventListener("resize",size);
+  var COLORS=["#C9A227","#E6C766","#2E7D6B","#3C9C86","#0F2C4C","#ffffff"];
+  function spawn(n){ for(var i=0;i<n;i++){ parts.push({ x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.3, r:4+Math.random()*5, c:COLORS[(Math.random()*COLORS.length)|0], vy:2+Math.random()*3.5, vx:-1.5+Math.random()*3, a:1, rot:Math.random()*6.28, vr:-0.2+Math.random()*0.4 }); } if(!raf) tick(); }
+  function tick(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    for(var i=parts.length-1;i>=0;i--){ var p=parts[i]; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.a-=0.006;
+      if(p.y>cv.height+30||p.a<=0){ parts.splice(i,1); continue; }
+      ctx.save(); ctx.globalAlpha=Math.max(p.a,0); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.c; ctx.fillRect(-p.r,-p.r*0.6,p.r*2,p.r*1.2); ctx.restore(); }
+    if(parts.length){ raf=requestAnimationFrame(tick); } else { raf=null; ctx.clearRect(0,0,cv.width,cv.height); }
+  }
+  function bigConfetti(){ if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; spawn(160); }
+  function miniConfetti(){ if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; spawn(70); }
+
+  // ---- Speech recognition (Listen & count) ----
+  var recog=null, listening=false;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  function normalize(s){ return s.toLowerCase().replace(/[^a-z\s]/g," ").replace(/\s+/g," ").trim(); }
+
+  window.toggleListen=function(){
+    var btn=document.getElementById("listenBtn");
+    var hint=document.getElementById("listenHint");
+    if(!SR){ popToast("Not available","This browser can’t listen. Chrome on Android/desktop works best — tapping still counts everything."); return; }
+    if(listening){ stopListen(); return; }
+    try{
+      recog=new SR(); recog.continuous=true; recog.interimResults=false; recog.lang="en-US";
+      recog.onresult=function(e){
+        for(var i=e.resultIndex;i<e.results.length;i++){
+          if(!e.results[i].isFinal) continue;
+          var heard=normalize(e.results[i][0].transcript);
+          PHRASES.forEach(function(p){
+            p.hear.forEach(function(key){
+              var idx=heard.indexOf(key), guard=0;
+              while(idx>-1 && guard<20){ var el=document.getElementById("t_"+p.id); bump(p.id); if(el){ flash(el.parentElement); } idx=heard.indexOf(key,idx+key.length); guard++; }
+            });
+          });
+        }
+      };
+      recog.onend=function(){ if(listening){ try{recog.start();}catch(e){} } };
+      recog.onerror=function(ev){ if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){ stopListen(); popToast("Mic blocked","Allow microphone access, then try again. Tapping always works."); } };
+      recog.start(); listening=true;
+      btn.classList.add("on"); btn.textContent="● Listening… tap to stop";
+      hint.textContent="Listening. Say your thanks out loud and it will count. Speak clearly; background noise can affect it.";
+    }catch(err){ popToast("Couldn’t start","Try again, or just tap the phrases."); }
+  };
+  function stopListen(){
+    listening=false;
+    try{ if(recog) recog.stop(); }catch(e){}
+    var btn=document.getElementById("listenBtn");
+    btn.classList.remove("on"); btn.textContent="🎙 Listen & count";
+    document.getElementById("listenHint").textContent="Tap a phrase each time you say it. Or turn on “Listen & count” and let it hear you — say the words out loud and it will tally them for you.";
+  }
+  if(!SR){ document.getElementById("listenBtn").style.opacity=".55"; }
+
+  // init
+  refreshTotals();
+  renderTrust();
+
+  // save on hide (mobile safety)
+  document.addEventListener("visibilitychange",function(){ if(document.hidden){ save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_TRUST,trust); } });
+})();
+</script>
+</body>
+</html>

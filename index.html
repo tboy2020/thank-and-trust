@@ -262,6 +262,13 @@
 
     <div class="section-h">Testimonies received</div>
     <div id="doneList"></div>
+
+    <div class="section-h">Keep it safe</div>
+    <p class="hint">Everything is saved on this device. Copy a backup to your notes or email so it can never be lost — and restore it on any phone.</p>
+    <div class="row">
+      <button class="btn ghost" onclick="backupData()">Copy backup</button>
+      <button class="btn ghost" onclick="restoreData()">Restore</button>
+    </div>
   </section>
 
   <footer>
@@ -278,11 +285,11 @@
   "use strict";
 
   var PHRASES = [
-    { id:"jesus",  txt:"Thank You Jesus",        hear:["thank you jesus"] },
-    { id:"lord",   txt:"Thank You Lord",         hear:["thank you lord"] },
-    { id:"father", txt:"Thank You Father",       hear:["thank you father"] },
-    { id:"jit",    txt:"Jesus, I thank You",     hear:["jesus i thank you"] },
-    { id:"hs",     txt:"Holy Spirit, I thank You",hear:["holy spirit i thank you"] }
+    { id:"jesus",  txt:"Thank You Jesus",         hear:["thank you jesus","thankyou jesus"] },
+    { id:"lord",   txt:"Thank You Lord",          hear:["thank you lord","thankyou lord"] },
+    { id:"father", txt:"Thank You Father",        hear:["thank you father","thankyou father"] },
+    { id:"jit",    txt:"Jesus, I thank You",      hear:["jesus i thank you","jesus i think you"] },
+    { id:"hs",     txt:"Holy Spirit, I thank You",hear:["holy spirit i thank you","holy spirit i think you"] }
   ];
   var MILESTONES = [7,12,21,40,70,77,100,144,300,490,777,1000];
   var MILE_WORD = {
@@ -407,6 +414,34 @@
   function niceDate(){ var d=new Date(); var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return m[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
 
+  // ---- backup & restore (never lose your trust entries) ----
+  window.backupData=function(){
+    var payload={ app:"thank-and-trust", v:1, exported:new Date().toISOString(),
+      counts:counts, total:total, today:today, date:lastDate, trust:trust };
+    var str=JSON.stringify(payload);
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(str).then(
+        function(){ popToast("Backup copied","Paste it into Notes or email it to yourself."); },
+        function(){ window.prompt("Copy this backup and keep it safe:", str); }
+      );
+    } else { window.prompt("Copy this backup and keep it safe:", str); }
+  };
+  window.restoreData=function(){
+    var str=window.prompt("Paste your backup here to restore (this replaces what’s on this device):","");
+    if(!str) return;
+    try{
+      var d=JSON.parse(str);
+      if(d.counts) counts=d.counts;
+      if(typeof d.total==="number") total=d.total;
+      if(typeof d.today==="number") today=d.today;
+      if(d.date) lastDate=d.date;
+      if(d.trust) trust=d.trust;
+      save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_DATE,lastDate); save(K_TRUST,trust);
+      refreshTotals(); renderTrust();
+      popToast("Restored","Welcome back — nothing lost.");
+    }catch(e){ popToast("Couldn’t read that","Make sure you pasted the full backup text."); }
+  };
+
   // ---- milestone + toast + confetti ----
   function celebrate(n){
     var w=MILE_WORD[n]||"Glory to God";
@@ -438,45 +473,79 @@
   function bigConfetti(){ if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; spawn(160); }
   function miniConfetti(){ if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; spawn(70); }
 
-  // ---- Speech recognition (Listen & count) ----
-  var recog=null, listening=false;
+  // ---- Speech recognition (Listen & count, real-time) ----
+  var recog=null, listening=false, counted={}, restartOK=false;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  function normalize(s){ return s.toLowerCase().replace(/[^a-z\s]/g," ").replace(/\s+/g," ").trim(); }
+  function normalize(s){ return (" "+s.toLowerCase()+" ").replace(/[^a-z\s]/g," ").replace(/\s+/g," "); }
+  function flashPhrase(id){ var t=document.getElementById("t_"+id); if(t) flash(t.parentElement); }
+
+  function countOcc(text, keys){
+    var total=0;
+    for(var j=0;j<keys.length;j++){
+      var key=keys[j], idx=text.indexOf(key), g=0;
+      while(idx>-1 && g<80){ total++; idx=text.indexOf(key, idx+key.length); g++; }
+    }
+    return total;
+  }
+
+  var DEFAULT_HINT="Tap a phrase each time you say it — or press “Listen & count” and it will tally as you speak.";
 
   window.toggleListen=function(){
     var btn=document.getElementById("listenBtn");
     var hint=document.getElementById("listenHint");
-    if(!SR){ popToast("Not available","This browser can’t listen. Chrome on Android/desktop works best — tapping still counts everything."); return; }
+    if(!SR){ popToast("Voice not available here","Your phone’s browser won’t allow live listening. Tapping still counts everything."); return; }
     if(listening){ stopListen(); return; }
+    startListen();
+  };
+
+  function startListen(){
+    var btn=document.getElementById("listenBtn");
+    var hint=document.getElementById("listenHint");
     try{
-      recog=new SR(); recog.continuous=true; recog.interimResults=false; recog.lang="en-US";
+      counted={};
+      recog=new SR();
+      recog.continuous=true;
+      recog.interimResults=true;   // count as you speak, not only at the end
+      recog.lang="en-US";
       recog.onresult=function(e){
-        for(var i=e.resultIndex;i<e.results.length;i++){
-          if(!e.results[i].isFinal) continue;
+        for(var i=0;i<e.results.length;i++){
           var heard=normalize(e.results[i][0].transcript);
+          if(!counted[i]) counted[i]={};
           PHRASES.forEach(function(p){
-            p.hear.forEach(function(key){
-              var idx=heard.indexOf(key), guard=0;
-              while(idx>-1 && guard<20){ var el=document.getElementById("t_"+p.id); bump(p.id); if(el){ flash(el.parentElement); } idx=heard.indexOf(key,idx+key.length); guard++; }
-            });
+            var occ=countOcc(heard,p.hear);
+            var prev=counted[i][p.id]||0;
+            if(occ>prev){
+              for(var k=0;k<(occ-prev);k++){ bump(p.id); }
+              counted[i][p.id]=occ;
+              flashPhrase(p.id);
+            }
           });
         }
       };
-      recog.onend=function(){ if(listening){ try{recog.start();}catch(e){} } };
-      recog.onerror=function(ev){ if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){ stopListen(); popToast("Mic blocked","Allow microphone access, then try again. Tapping always works."); } };
-      recog.start(); listening=true;
+      recog.onend=function(){
+        // iOS ends sessions after short pauses — restart to stay live
+        if(restartOK){ counted={}; try{ recog.start(); }catch(e){ setTimeout(function(){ if(restartOK){ try{recog.start();}catch(x){} } },400); } }
+      };
+      recog.onerror=function(ev){
+        if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){ stopListen(); popToast("Microphone blocked","Open the app in Safari (not the home-screen icon) and allow the mic. Tapping always works."); }
+        else if(ev.error==="audio-capture"){ stopListen(); popToast("No microphone","Couldn’t reach a mic. Tapping counts everything."); }
+        // "no-speech" / "network" — let onend restart quietly
+      };
+      restartOK=true; recog.start(); listening=true;
       btn.classList.add("on"); btn.textContent="● Listening… tap to stop";
-      hint.textContent="Listening. Say your thanks out loud and it will count. Speak clearly; background noise can affect it.";
-    }catch(err){ popToast("Couldn’t start","Try again, or just tap the phrases."); }
-  };
+      hint.textContent="Listening — say your thanks aloud and watch the numbers climb. Keep this screen open.";
+    }catch(err){ popToast("Couldn’t start listening","Try once more, or just tap the phrases."); }
+  }
+
   function stopListen(){
-    listening=false;
-    try{ if(recog) recog.stop(); }catch(e){}
+    listening=false; restartOK=false;
+    try{ if(recog){ recog.onend=null; recog.stop(); } }catch(e){}
     var btn=document.getElementById("listenBtn");
     btn.classList.remove("on"); btn.textContent="🎙 Listen & count";
-    document.getElementById("listenHint").textContent="Tap a phrase each time you say it. Or turn on “Listen & count” and let it hear you — say the words out loud and it will tally them for you.";
+    document.getElementById("listenHint").textContent=DEFAULT_HINT;
   }
-  if(!SR){ document.getElementById("listenBtn").style.opacity=".55"; }
+  document.getElementById("listenHint").textContent=DEFAULT_HINT;
+  if(!SR){ document.getElementById("listenBtn").style.opacity=".55"; document.getElementById("listenBtn").textContent="🎙 Voice not supported here"; }
 
   // init
   refreshTotals();

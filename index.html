@@ -580,10 +580,11 @@
       counted={};
       recog=new SR();
       recog.continuous=true;
-      recog.interimResults=true;   // count as you speak, not only at the end
+      recog.interimResults=false;  // count finalized phrases only — stops Chrome over-counting
       recog.lang="en-US";
       recog.onresult=function(e){
         for(var i=0;i<e.results.length;i++){
+          if(!e.results[i].isFinal) continue;   // ignore live in-progress guesses
           var heard=normalize(e.results[i][0].transcript);
           if(!counted[i]) counted[i]={};
           PHRASES.forEach(function(p){
@@ -608,7 +609,7 @@
       };
       restartOK=true; recog.start(); listening=true;
       btn.classList.add("on"); btn.textContent="● Listening… tap to stop";
-      hint.textContent="Listening — say your thanks aloud and watch the numbers climb. Keep this screen open.";
+      hint.textContent="Listening — say each thanksgiving clearly and it lands a second after you finish. One voice at a time is most accurate; with a group, tapping is best.";
     }catch(err){ popToast("Couldn’t start listening","Try once more, or just tap the phrases."); }
   }
 

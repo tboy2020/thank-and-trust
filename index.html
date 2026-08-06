@@ -402,15 +402,23 @@
 
   function flash(el){ el.classList.add("pulse"); setTimeout(function(){el.classList.remove("pulse");},220); }
 
-  function bump(id){
-    counts[id]=(counts[id]||0)+1;
-    total++; today++;
+  function bumpBy(id,delta){
+    if(!delta) return;
+    var cur=counts[id]||0;
+    var next=Math.max(0,cur+delta);
+    var applied=next-cur;
+    if(!applied) return;
+    counts[id]=next;
+    total=Math.max(0,total+applied);
+    today=Math.max(0,today+applied);
     save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_DATE,todayStr());
     var t=document.getElementById("t_"+id); if(t) t.textContent=counts[id];
     document.getElementById("totalNum").textContent=total;
     document.getElementById("todayNum").textContent=today;
-    if(MILESTONES.indexOf(total)>-1){ celebrate(total); }
+    if(applied>0 && MILESTONES.indexOf(total)>-1){ celebrate(total); }
   }
+
+  function bump(id){ bumpBy(id,1); }
 
   function refreshTotals(){
     document.getElementById("totalNum").textContent=total;
@@ -549,7 +557,7 @@
   function miniConfetti(){ if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; spawn(70); }
 
   // ---- Speech recognition (Listen & count, real-time) ----
-  var recog=null, listening=false, counted={}, restartOK=false;
+  var recog=null, listening=false, counted={}, doneIdx={}, restartOK=false;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   function normalize(s){ return (" "+s.toLowerCase()+" ").replace(/[^a-z\s]/g," ").replace(/\s+/g," "); }
   function flashPhrase(id){ var t=document.getElementById("t_"+id); if(t) flash(t.parentElement); }
@@ -577,30 +585,37 @@
     var btn=document.getElementById("listenBtn");
     var hint=document.getElementById("listenHint");
     try{
-      counted={};
+      counted={}; doneIdx={};
       recog=new SR();
       recog.continuous=true;
-      recog.interimResults=false;  // count finalized phrases only — stops Chrome over-counting
+      recog.interimResults=true;   // count the instant it hears you
       recog.lang="en-US";
       recog.onresult=function(e){
         for(var i=0;i<e.results.length;i++){
-          if(!e.results[i].isFinal) continue;   // ignore live in-progress guesses
-          var heard=normalize(e.results[i][0].transcript);
+          if(doneIdx[i]) continue;                 // already settled
+          var res=e.results[i];
+          var isFinal=res.isFinal;
+          var heard=normalize(res[0].transcript);
           if(!counted[i]) counted[i]={};
           PHRASES.forEach(function(p){
             var occ=countOcc(heard,p.hear);
+            if(occ>12) occ=12;                     // sanity cap per utterance
             var prev=counted[i][p.id]||0;
-            if(occ>prev){
-              for(var k=0;k<(occ-prev);k++){ bump(p.id); }
+            if(occ>prev){                          // heard more — count now, no waiting
+              bumpBy(p.id,occ-prev);
               counted[i][p.id]=occ;
               flashPhrase(p.id);
+            } else if(occ<prev && isFinal){        // guess was revised down — correct it
+              bumpBy(p.id,occ-prev);
+              counted[i][p.id]=occ;
             }
           });
+          if(isFinal) doneIdx[i]=true;
         }
       };
       recog.onend=function(){
         // iOS ends sessions after short pauses — restart to stay live
-        if(restartOK){ counted={}; try{ recog.start(); }catch(e){ setTimeout(function(){ if(restartOK){ try{recog.start();}catch(x){} } },400); } }
+        if(restartOK){ counted={}; doneIdx={}; try{ recog.start(); }catch(e){ setTimeout(function(){ if(restartOK){ try{recog.start();}catch(x){} } },400); } }
       };
       recog.onerror=function(ev){
         if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){ stopListen(); popToast("Microphone blocked","Open the app in Safari (not the home-screen icon) and allow the mic. Tapping always works."); }
@@ -609,7 +624,7 @@
       };
       restartOK=true; recog.start(); listening=true;
       btn.classList.add("on"); btn.textContent="● Listening… tap to stop";
-      hint.textContent="Listening — say each thanksgiving clearly and it lands a second after you finish. One voice at a time is most accurate; with a group, tapping is best.";
+      hint.textContent="Listening — it counts the instant it hears you, and quietly corrects itself if it mishears. One voice at a time is most accurate; with a group, tapping is best.";
     }catch(err){ popToast("Couldn’t start listening","Try once more, or just tap the phrases."); }
   }
 

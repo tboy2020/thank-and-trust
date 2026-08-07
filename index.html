@@ -588,29 +588,22 @@
       counted={}; doneIdx={};
       recog=new SR();
       recog.continuous=true;
-      recog.interimResults=true;   // count the instant it hears you
+      recog.interimResults=false;  // count only finalized phrases — prevents Samsung/Android over-counting
       recog.lang="en-US";
       recog.onresult=function(e){
         for(var i=0;i<e.results.length;i++){
-          if(doneIdx[i]) continue;                 // already settled
-          var res=e.results[i];
-          var isFinal=res.isFinal;
-          var heard=normalize(res[0].transcript);
+          if(!e.results[i].isFinal) continue;      // ignore live guesses; count only settled speech
+          var heard=normalize(e.results[i][0].transcript);
           if(!counted[i]) counted[i]={};
           PHRASES.forEach(function(p){
             var occ=countOcc(heard,p.hear);
-            if(occ>12) occ=12;                     // sanity cap per utterance
             var prev=counted[i][p.id]||0;
-            if(occ>prev){                          // heard more — count now, no waiting
-              bumpBy(p.id,occ-prev);
+            if(occ>prev){                          // count each newly-heard mention exactly once
+              for(var k=0;k<(occ-prev);k++){ bump(p.id); }
               counted[i][p.id]=occ;
               flashPhrase(p.id);
-            } else if(occ<prev && isFinal){        // guess was revised down — correct it
-              bumpBy(p.id,occ-prev);
-              counted[i][p.id]=occ;
             }
           });
-          if(isFinal) doneIdx[i]=true;
         }
       };
       recog.onend=function(){
@@ -624,7 +617,7 @@
       };
       restartOK=true; recog.start(); listening=true;
       btn.classList.add("on"); btn.textContent="● Listening… tap to stop";
-      hint.textContent="Listening — it counts the instant it hears you, and quietly corrects itself if it mishears. One voice at a time is most accurate; with a group, tapping is best.";
+      hint.textContent="Listening — say each thanksgiving clearly and it counts once, a moment after you finish. One voice at a time is most accurate; with a group, tapping is best.";
     }catch(err){ popToast("Couldn’t start listening","Try once more, or just tap the phrases."); }
   }
 

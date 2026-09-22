@@ -1106,7 +1106,7 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
   window.namesHome=function(){ stopLitanyListen(); mountHome(); };
 
   // ================= LITANY VOICE =================
-  var lrec=null, lOn=false, lRestart=false, curKeys=[], curWhole=false;
+  var lrec=null, lOn=false, lRestart=false, curKeys=[], curWhole=false, advSig={};
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   // canonicalize British <-> American spellings so an en-US recognizer ("savior") matches a KJV name ("Saviour")
   function americanize(t){ return t
@@ -1125,10 +1125,15 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
   function heardCurrent(text){
     if(curWhole){ return text.indexOf(curKeys[0])>-1; }
     if(!curKeys.length) return false;
-    var toks = text.split(" ").map(stemw);
+    // keys are already stemmed roots (e.g. "bless"); match by prefix against the spoken words, don't re-stem them
+    var toks = text.split(" ");
     for(var i=0;i<curKeys.length;i++){
       var parts=curKeys[i].split(" "), ok=true;
-      for(var j=0;j<parts.length;j++){ if(toks.indexOf(stemw(parts[j]))<0){ ok=false; break; } }
+      for(var j=0;j<parts.length;j++){
+        var key=parts[j], hit=(key==="");
+        if(!hit){ for(var t=0;t<toks.length;t++){ var w=toks[t]; if(w && (w===key || w.indexOf(key)===0 || (key.indexOf(w)===0 && w.length>=4))){ hit=true; break; } } }
+        if(!hit){ ok=false; break; }
+      }
       if(!ok) return false;
     }
     return true;
@@ -1152,16 +1157,18 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
   function startLitanyListen(){
     try{
       if(window.__ttStopListen) window.__ttStopListen();   // free the mic from the Thank tab
+      advSig={};
       lrec=new SR(); lrec.continuous=true; lrec.interimResults=true; lrec.maxAlternatives=1; lrec.lang="en-US";
       lrec.onresult=function(ev){
         var start=(typeof ev.resultIndex==="number")?ev.resultIndex:0;
         for(var i=start;i<ev.results.length;i++){
           var res=ev.results[i], raw=(res[0]&&res[0].transcript)||"";
           showNHeard(raw, !!res.isFinal);                 // live "what it heard" line, like the Thank tab
-          if(res.isFinal && heardCurrent(norm(raw))) litAdvance();
+          var nrm=norm(raw);
+          if(advSig[i]!==nrm && heardCurrent(nrm)){ advSig[i]=nrm; litAdvance(); }   // advance on interim OR final; guard the same result from advancing twice
         }
       };
-      lrec.onend=function(){ if(lRestart){ try{lrec.start();}catch(e){ setTimeout(function(){ if(lRestart){try{lrec.start();}catch(x){}} },400);} } };
+      lrec.onend=function(){ if(lRestart){ advSig={}; try{lrec.start();}catch(e){ setTimeout(function(){ if(lRestart){try{lrec.start();}catch(x){}} },400);} } };
       lrec.onerror=function(ev){ if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){ stopLitanyListen(); toast("Microphone blocked","Allow the mic for this page (in Safari, not the home-screen icon), then press Listen again."); } };
       lRestart=true; lrec.start(); lOn=true;
       if(window.__ttAcquireWake) window.__ttAcquireWake();

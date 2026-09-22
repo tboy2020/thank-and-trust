@@ -273,7 +273,8 @@
   #panNames .bar{height:8px;background:rgba(15,44,76,.12);border-radius:99px;overflow:hidden;}
   #panNames .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--verd),var(--gold));transition:width .4s ease;}
   #panNames .pcount{display:flex;justify-content:space-between;font-family:'Saira Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:#6b6250;margin-top:6px;}
-  #panNames .bigtap{margin-top:16px;width:100%;border:0;border-radius:16px;padding:20px;cursor:pointer;color:var(--navy);font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:18px;background:linear-gradient(180deg,var(--gold-lite),var(--gold));box-shadow:0 8px 20px rgba(201,162,39,.3);}
+  #panNames .bigtap{margin-top:14px;width:100%;border:0;border-radius:13px;padding:13px;cursor:pointer;color:var(--navy);font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:15px;background:linear-gradient(180deg,var(--gold-lite),var(--gold));box-shadow:0 6px 14px rgba(201,162,39,.28);}
+  #panNames .tap-note{font-size:11px;color:#9fb0c2;text-align:center;margin-top:7px;letter-spacing:.02em;}
   #panNames .bigtap:active{transform:scale(.99);}
 
   /* Share on WhatsApp */
@@ -962,7 +963,8 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
   function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
   // progress pointers only (the COUNT is the host app's shared total)
-  var S = { runs: load("v2_runs",0), tIdx: load("v2_tidx",0), wIdx: load("v2_widx",{}) };
+  var S = { runs: load("v2_runs",0), tIdx: load("v2_tidx",0), wIdx: load("v2_widx",{}), called: load("v2_called",{}) };
+  var NAMEMAP={}; FLAT.forEach(function(e){ if(!NAMEMAP[e.name]) NAMEMAP[e.name]={ref:e.ref}; });
 
   function offerThanks(){ if(window.__ttOffer) window.__ttOffer(1); }
   function toast(a,b){ if(window.__ttToast) window.__ttToast(a,b); }
@@ -982,6 +984,7 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
     '<div class="progress"><div class="bar"><i id="n-bar"></i></div>'+
       '<div class="pcount"><span id="n-count"></span><span id="n-left"></span></div></div>'+
     '<button class="bigtap" id="n-next" onclick="namesNext()">Amen — next name</button>'+
+    '<div class="tap-note">Tap only if the voice doesn’t catch the name.</div>'+
     '<div class="row">'+
       '<button class="btn" onclick="namesBack()">‹ Back</button>'+
       '<button class="btn listen" id="n-listen" onclick="namesToggleListen()">🎙 Listen</button>'+
@@ -1016,7 +1019,9 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
   }
   function litAdvance(){
     if(!run || run.idx>=run.list.length) return;
+    var cur=run.list[run.idx];
     offerThanks();
+    if(cur){ S.called[cur.name]=(S.called[cur.name]||0)+1; save("v2_called",S.called); }   // record which name was called
     run.idx++; run.persist(run.idx);
     var st=document.getElementById("n-stage");
     if(st){ st.classList.remove("flash"); void st.offsetWidth; st.classList.add("flash"); }
@@ -1054,8 +1059,32 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
         '<div class="wt">'+esc(w.t)+'</div><div class="ws">'+esc(w.s)+'</div>'+
         '<div class="wmeta"><span class="wcount">'+done+' / '+n+'</span><span class="wbar"><i style="width:'+pct+'%"></i></span></div></div>';
     });
+    var distinct=0, times=0; for(var k in S.called){ if(S.called.hasOwnProperty(k)){ distinct++; times+=S.called[k]; } }
+    html+='<div class="section-h">Your record</div>'+
+      '<div class="wing" onclick="namesStats()">'+
+        '<div class="wt">Names You’ve Called</div><div class="ws">Every name of God you’ve thanked, and how often</div>'+
+        '<div class="wmeta"><span class="wcount">'+distinct+' names • '+times+' times</span></div>'+
+      '</div>';
     host.innerHTML=html;
   }
+  window.namesStats=function(){
+    stopLitanyListen();
+    var host=document.getElementById("panNames");
+    var entries=[]; for(var k in S.called){ if(S.called.hasOwnProperty(k)) entries.push({name:k,n:S.called[k]}); }
+    entries.sort(function(a,b){ return b.n-a.n || (a.name<b.name?-1:1); });   // most-called first
+    var times=0; entries.forEach(function(e){ times+=e.n; });
+    var html='<div class="backrow"><button class="backbtn" onclick="namesHome()">‹ Wings</button><span class="screen-title">Names Called</span></div>';
+    if(!entries.length){
+      html+='<div class="empty">No names called yet. Open a wing and give thanks — each name of God you call is recorded here.</div>';
+    } else {
+      html+='<p class="hint" style="margin-top:0;margin-bottom:12px">'+entries.length+' names of God called • '+times+' thanksgivings</p>';
+      entries.forEach(function(e){
+        var ref=(NAMEMAP[e.name]||{}).ref||"";
+        html+='<div class="hrow"><div class="lab">'+esc(e.name)+(ref?('<small>'+esc(ref)+'</small>'):'')+'</div><div class="val">'+e.n+'</div></div>';
+      });
+    }
+    host.innerHTML=html;
+  };
   window.namesRunAll=function(){
     var host=document.getElementById("panNames");
     host.innerHTML='<div class="backrow"><button class="backbtn" onclick="namesHome()">‹ Wings</button><span class="screen-title">The Whole 1000</span></div>'+buildStageHTML();
@@ -1079,13 +1108,19 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
   // ================= LITANY VOICE =================
   var lrec=null, lOn=false, lRestart=false, curKeys=[], curWhole=false;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  function norm(s){ return (" "+String(s).toLowerCase()+" ").replace(/[^a-z\s]/g," ").replace(/\s+/g," "); }
+  // canonicalize British <-> American spellings so an en-US recognizer ("savior") matches a KJV name ("Saviour")
+  function americanize(t){ return t
+    .replace(/saviour/g,"savior").replace(/favour/g,"favor").replace(/honour/g,"honor")
+    .replace(/counsellor/g,"counselor").replace(/defence/g,"defense").replace(/labour/g,"labor")
+    .replace(/armour/g,"armor").replace(/splendour/g,"splendor").replace(/valour/g,"valor")
+    .replace(/neighbour/g,"neighbor").replace(/succour/g,"succor").replace(/judgement/g,"judgment"); }
+  function norm(s){ return americanize((" "+String(s).toLowerCase()+" ").replace(/[^a-z\s]/g," ").replace(/\s+/g," ")); }
   function stemw(w){ var suf=["iness","ousness","ness","ing","eth","est","ers","er","ed","es","s"]; for(var i=0;i<suf.length;i++){var x=suf[i]; if(w.length-x.length>=3 && w.slice(-x.length)===x) return w.slice(0,-x.length);} return w; }
   function listenPrimeCurrent(){
     if(!run||run.idx>=run.list.length){ curKeys=[]; return; }
     var e=run.list[run.idx];
     curWhole = (e.keys && e.keys.length===1 && e.keys[0].indexOf(" ")>-1 && e.keys[0].split(" ").length>=3);
-    curKeys = (e.keys||[]).map(function(k){ return k; });
+    curKeys = (e.keys||[]).map(function(k){ return americanize(k); });
   }
   function heardCurrent(text){
     if(curWhole){ return text.indexOf(curKeys[0])>-1; }

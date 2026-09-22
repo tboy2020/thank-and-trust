@@ -757,6 +757,19 @@
 
   var DEFAULT_HINT="Press “Listen & count” and speak your thanksgivings — each is tallied as you say it.";
 
+  // Keep the screen awake while listening, so an idle phone doesn't sleep and cut off the mic.
+  var wakeLock=null;
+  function acquireWake(){
+    try{
+      if(!("wakeLock" in navigator) || document.visibilityState!=="visible") return;
+      navigator.wakeLock.request("screen").then(function(wl){
+        wakeLock=wl;
+        wl.addEventListener("release", function(){ if(wakeLock===wl) wakeLock=null; });
+      }).catch(function(){});
+    }catch(e){}
+  }
+  function releaseWake(){ var wl=wakeLock; wakeLock=null; if(wl){ try{ wl.release(); }catch(e){} } }
+
   window.toggleListen=function(){
     if(!SR){ popToast("Voice not available here","This browser can’t do voice counting. Open Thank & Trust in Chrome, or in Safari on an iPhone."); return; }
     if(listening){ stopListen(); return; }
@@ -807,15 +820,16 @@
         else if(ev.error==="audio-capture"){ stopListen(); popToast("No microphone","Couldn’t reach a mic — check your phone’s mic permission and try again."); }
         // "no-speech" / "network" / "aborted" — let onend restart quietly
       };
-      restartOK=true; recog.start(); listening=true;
+      restartOK=true; recog.start(); listening=true; acquireWake();
       btn.classList.add("on"); btn.textContent="● Listening… press to stop";
-      hint.textContent="Listening — each thanksgiving is counted once, as you say it. Speak clearly, one voice at a time, for the surest count.";
+      hint.textContent="Listening — each thanksgiving is counted once, as you say it. Your screen stays awake while it listens; speak clearly, one voice at a time.";
       showHeard("", true);
     }catch(err){ popToast("Couldn’t start listening","Try once more, and check the mic permission for this page."); }
   }
 
   function stopListen(){
     listening=false; restartOK=false;
+    releaseWake();
     try{ if(recog){ recog.onend=null; recog.stop(); } }catch(e){}
     var btn=document.getElementById("listenBtn");
     btn.classList.remove("on"); btn.textContent="🎙 Listen & count";
@@ -830,8 +844,11 @@
   renderTrust();
   renderHistory();
 
-  // save on hide (mobile safety)
-  document.addEventListener("visibilitychange",function(){ if(document.hidden){ save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_TRUST,trust); save(K_CUSTOM,custom); save(K_LOG,log); } });
+  // save on hide (mobile safety); re-take the wake lock on return (browsers drop it when the page is hidden)
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden){ save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_TRUST,trust); save(K_CUSTOM,custom); save(K_LOG,log); }
+    else if(listening){ acquireWake(); }
+  });
 })();
 </script>
 </body>

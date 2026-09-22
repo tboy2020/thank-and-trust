@@ -249,6 +249,18 @@
   }
   .hrow.today-row{border-color:rgba(201,162,39,.5);box-shadow:0 0 0 2px rgba(201,162,39,.25),0 4px 10px rgba(0,0,0,.14);}
 
+  /* Share on WhatsApp */
+  .share-row{margin-top:24px;text-align:center;}
+  .share-btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    font-size:14px;border:0;border-radius:14px;padding:15px 22px;cursor:pointer;color:#fff;width:100%;max-width:360px;
+    background:linear-gradient(180deg,#25D366,#12a150);box-shadow:0 8px 20px rgba(18,140,80,.35);
+  }
+  .share-btn:active{transform:scale(.98);}
+  .share-btn svg{width:20px;height:20px;fill:#fff;flex:0 0 auto;}
+  .share-cap{font-size:12px;color:#9fb0c2;margin-top:9px;line-height:1.5;}
+
   footer{
     text-align:center;margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
   }
@@ -379,6 +391,14 @@
 
     <p class="hint">Daily history begins the first day you count in this version. The cumulative total above carries every thanksgiving — including any offered before daily tracking began.</p>
   </section>
+
+  <div class="share-row">
+    <button class="share-btn" onclick="shareWhatsApp()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Zm4.4-5.6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.2-2.8c-.1-.2 0-.4.1-.5l.4-.5c.1-.1.1-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.6.6-.9 1.4-.8 2.3.2 1.3.9 2.4 2 3.4a8 8 0 0 0 3.6 2c.9.2 1.6.1 2.2-.2.5-.3.9-.9 1-1.3.1-.4.1-.7 0-.8Z"/></svg>
+      Share on WhatsApp
+    </button>
+    <div class="share-cap">Invite friends &amp; family in your church to give thanks together.</div>
+  </div>
 
   <footer>
     <div class="g">Glory to God alone</div>
@@ -838,6 +858,17 @@
   }
   document.getElementById("listenHint").textContent=DEFAULT_HINT;
   if(!SR){ document.getElementById("listenBtn").style.opacity=".55"; document.getElementById("listenBtn").textContent="🎙 Voice not supported here"; }
+
+  // ---- share on WhatsApp ----
+  window.shareWhatsApp=function(){
+    var url="https://tboy2020.github.io/thank-and-trust/";
+    var msg="🙏 *Thank & Trust*\n\n"
+          + "A family-altar counter — say your thanksgivings to God out loud and it tallies them as you speak, and keep a journal of what you’re trusting Him for.\n\n"
+          + "“In every thing give thanks” — 1 Thessalonians 5:18\n\n"
+          + "Join me 👉 "+url+"\n\nGlory to God alone 🙌";
+    var wa="https://wa.me/?text="+encodeURIComponent(msg);
+    try{ window.open(wa,"_blank"); }catch(e){ location.href=wa; }
+  };
 
   // init
   refreshTotals();

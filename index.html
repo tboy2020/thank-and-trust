@@ -92,17 +92,35 @@
   }
   .today b{color:var(--gold);font-weight:700;}
 
+  /* Frozen top pane: count + Listen & count stay pinned while the phrases scroll */
+  .thank-top{
+    position:sticky;
+    top:0;
+    z-index:20;
+    margin:0 -16px 8px;
+    padding:8px 16px 12px;
+    background:linear-gradient(180deg,#1b436f 0%, #123255 100%);
+    border-bottom:1px solid var(--line);
+    box-shadow:0 12px 22px -10px rgba(0,0,0,.5);
+  }
+  .thank-top .row{margin-top:10px;}
+  .heard{
+    max-height:0;overflow:hidden;opacity:0;transition:opacity .2s ease;
+    text-align:center;font-family:'Fraunces',serif;font-style:italic;font-size:14px;
+    color:var(--gold-lite);white-space:nowrap;text-overflow:ellipsis;
+  }
+  .heard.show{max-height:40px;opacity:.95;margin-top:8px;}
+
   /* Phrase buttons */
   .phrases{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px;}
   .phrase{
     display:flex;align-items:center;justify-content:space-between;gap:12px;
-    border:1px solid var(--line);border-radius:16px;cursor:pointer;
+    border:1px solid var(--line);border-radius:16px;
     background:rgba(255,255,255,.94);
     padding:16px 18px;text-align:left;width:100%;
     transition:transform .06s ease, box-shadow .18s, background .18s;
     box-shadow:0 6px 14px rgba(0,0,0,.18);
   }
-  .phrase:active{transform:scale(.98);}
   .phrase .txt{
     font-family:'Fraunces',serif;font-style:italic;font-weight:500;
     font-size:19px;color:var(--navy);
@@ -204,6 +222,33 @@
     font-size:15px;padding:18px 10px;
   }
 
+  /* History / record tab */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 0 12px;}
+  .stat{
+    background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:14px;
+    padding:14px 12px;box-shadow:0 6px 14px rgba(0,0,0,.16);text-align:center;
+  }
+  .stat .k{font-family:'Saira Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;font-size:11px;color:var(--verd);font-weight:600;}
+  .stat .n{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:34px;color:var(--navy);line-height:1;margin:6px 0 3px;}
+  .stat .d{font-size:11px;color:#8a97a6;letter-spacing:.02em;line-height:1.3;}
+  .count-card.cumulative{margin-bottom:4px;}
+  .count-card .cum-label{
+    font-family:'Saira Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;
+    font-size:11px;color:#8a97a6;margin-top:8px;
+  }
+  .hrow{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:12px;
+    padding:11px 14px;margin-bottom:8px;box-shadow:0 4px 10px rgba(0,0,0,.14);
+  }
+  .hrow .lab{font-family:'Inter',sans-serif;font-weight:600;color:var(--navy);font-size:14px;line-height:1.25;}
+  .hrow .lab small{display:block;font-weight:500;color:#8a97a6;font-size:11px;letter-spacing:.02em;margin-top:2px;}
+  .hrow .val{
+    font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:20px;color:var(--verd);
+    background:rgba(46,125,107,.1);border-radius:10px;padding:3px 12px;min-width:46px;text-align:center;
+  }
+  .hrow.today-row{border-color:rgba(201,162,39,.5);box-shadow:0 0 0 2px rgba(201,162,39,.25),0 4px 10px rgba(0,0,0,.14);}
+
   footer{
     text-align:center;margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
   }
@@ -246,14 +291,21 @@
   <div class="tabs" role="tablist">
     <button class="tab active" id="tabThank" onclick="showTab('thank')">Thank</button>
     <button class="tab" id="tabTrust" onclick="showTab('trust')">Trust</button>
+    <button class="tab" id="tabHistory" onclick="showTab('history')">History</button>
   </div>
 
   <!-- THANK PANEL -->
   <section class="panel active" id="panThank">
-    <div class="count-card">
-      <div class="count-num" id="totalNum">0</div>
-      <div class="count-label">Thanksgivings unto the Lord</div>
-      <div class="today">Today: <b id="todayNum">0</b> &nbsp;&bull;&nbsp; Streak keeps the altar burning</div>
+    <div class="thank-top">
+      <div class="count-card">
+        <div class="count-num" id="totalNum">0</div>
+        <div class="count-label">Thanksgivings unto the Lord</div>
+        <div class="today">Today: <b id="todayNum">0</b> &nbsp;&bull;&nbsp; Streak keeps the altar burning</div>
+      </div>
+      <div class="row">
+        <button class="btn listen" id="listenBtn" onclick="toggleListen()">🎙 Listen &amp; count</button>
+      </div>
+      <div class="heard" id="heardLive"></div>
     </div>
 
     <div class="phrases" id="phraseList"></div>
@@ -264,13 +316,10 @@
     </div>
 
     <div class="row">
-      <button class="btn listen" id="listenBtn" onclick="toggleListen()">🎙 Listen &amp; count</button>
-    </div>
-    <div class="row">
       <button class="btn ghost" onclick="resetToday()">Reset today</button>
       <button class="btn ghost" onclick="resetAll()">Reset all</button>
     </div>
-    <p class="hint" id="listenHint">Tap a phrase each time you say it. Or turn on “Listen &amp; count” and let it hear you — say the words out loud and it will tally them for you.</p>
+    <p class="hint" id="listenHint">Press “Listen &amp; count,” then say your thanksgivings out loud — each one is tallied as you speak, and its card lights up as He hears you.</p>
   </section>
 
   <!-- TRUST PANEL -->
@@ -296,6 +345,39 @@
       <button class="btn ghost" onclick="backupData()">Copy backup</button>
       <button class="btn ghost" onclick="restoreData()">Restore</button>
     </div>
+  </section>
+
+  <!-- HISTORY PANEL -->
+  <section class="panel" id="panHistory">
+    <p class="lead">Bless the LORD, O my soul, and forget not all his benefits.
+      <span class="ref">Psalm 103:2 &bull; KJV</span></p>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="k">Today</div><div class="n" id="hToday">0</div><div class="d" id="hTodayD">&mdash;</div></div>
+      <div class="stat"><div class="k">This week</div><div class="n" id="hWeek">0</div><div class="d" id="hWeekD">&mdash;</div></div>
+      <div class="stat"><div class="k">This month</div><div class="n" id="hMonth">0</div><div class="d" id="hMonthD">&mdash;</div></div>
+      <div class="stat"><div class="k">This year</div><div class="n" id="hYear">0</div><div class="d" id="hYearD">&mdash;</div></div>
+    </div>
+
+    <div class="count-card cumulative">
+      <div class="count-num" id="hTotal">0</div>
+      <div class="count-label">Cumulative thanksgivings</div>
+      <div class="cum-label" id="hTotalD">as of today</div>
+    </div>
+
+    <div class="section-h">By day</div>
+    <div id="histDays"></div>
+
+    <div class="section-h">By week</div>
+    <div id="histWeeks"></div>
+
+    <div class="section-h">By month</div>
+    <div id="histMonths"></div>
+
+    <div class="section-h">By year</div>
+    <div id="histYears"></div>
+
+    <p class="hint">Daily history begins the first day you count in this version. The cumulative total above carries every thanksgiving — including any offered before daily tracking began.</p>
   </section>
 
   <footer>
@@ -327,11 +409,15 @@
     490:"Seventy times seven",777:"Threefold perfection",1000:"A thousand generations"
   };
 
-  var K_COUNTS="tt_counts", K_TOTAL="tt_total", K_TODAY="tt_today", K_DATE="tt_date", K_TRUST="tt_trust", K_CUSTOM="tt_custom";
+  var K_COUNTS="tt_counts", K_TOTAL="tt_total", K_TODAY="tt_today", K_DATE="tt_date", K_TRUST="tt_trust", K_CUSTOM="tt_custom", K_LOG="tt_log";
 
   function load(k,d){ try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;} }
   function save(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
-  function todayStr(){ var d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+  function pad2(n){ return (n<10?"0":"")+n; }
+  function isoDay(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+  function todayStr(){ return isoDay(new Date()); }
+  function normDay(s){ if(!s) return ""; var p=String(s).split("-"); if(p.length<3) return String(s); return p[0]+"-"+pad2(+p[1])+"-"+pad2(+p[2]); }
+  function dayObj(s){ var p=String(s).split("-"); return new Date(+p[0],(+p[1])-1,+p[2]); }
 
   var counts = load(K_COUNTS,{});
   var total  = load(K_TOTAL,0);
@@ -339,9 +425,22 @@
   var lastDate = load(K_DATE,"");
   var trust  = load(K_TRUST,[]);
   var custom = load(K_CUSTOM,[]);   // [{id,txt,hear:[key]}]
+  var log    = load(K_LOG,{});      // { "YYYY-MM-DD": count } — dated daily history
 
-  // roll over the "today" counter if the day changed
-  if(lastDate !== todayStr()){ today=0; lastDate=todayStr(); save(K_TODAY,0); save(K_DATE,lastDate); }
+  // normalize any older, non-padded date keys (e.g. "2026-9-2" -> "2026-09-02")
+  (function(){
+    var out={}, changed=false;
+    for(var k in log){ if(!log.hasOwnProperty(k)) continue; var nk=normDay(k); if(nk!==k) changed=true; out[nk]=(out[nk]||0)+(log[k]||0); }
+    if(changed){ log=out; save(K_LOG,log); }
+  })();
+
+  // one-time seed: upgrading from a version with no daily log — record today's running count so it isn't lost
+  if(!Object.keys(log).length && today>0 && lastDate){ log[normDay(lastDate)]=today; save(K_LOG,log); }
+
+  // "today" is simply today's entry in the log; reading it this way rolls the day over automatically
+  today = log[todayStr()] || 0;
+  lastDate = todayStr();
+  save(K_TODAY,today); save(K_DATE,lastDate);
 
   // ---- render phrase buttons (presets + custom) ----
   var listEl=document.getElementById("phraseList");
@@ -356,17 +455,14 @@
     PHRASES.forEach(function(p,i){
       if(counts[p.id]==null) counts[p.id]=0;
       var isCustom=(p.id.charAt(0)==="c");
-      var b=document.createElement("button");
-      b.className="phrase"+((n%2===1 && i===n-1)?" full":"");
-      b.setAttribute("aria-label",p.txt+", tap to add one");
-      var removeBtn=isCustom?'<span class="rm" title="Remove" aria-label="Remove phrase">&times;</span>':'';
-      b.innerHTML='<span class="txt">'+escapeHtml(p.txt)+'</span>'
+      var card=document.createElement("div");        // display-only scoreboard card — counting is by voice
+      card.className="phrase"+((n%2===1 && i===n-1)?" full":"");
+      card.setAttribute("aria-label",p.txt);
+      var removeBtn=isCustom?'<span class="rm" title="Remove" role="button" aria-label="Remove phrase">&times;</span>':'';
+      card.innerHTML='<span class="txt">'+escapeHtml(p.txt)+'</span>'
                  +'<span class="side">'+removeBtn+'<span class="tally" id="t_'+p.id+'">'+(counts[p.id]||0)+'</span></span>';
-      b.onclick=function(ev){
-        if(ev.target && ev.target.className==="rm"){ ev.stopPropagation(); removePhrase(p.id); return; }
-        bump(p.id); flash(b);
-      };
-      listEl.appendChild(b);
+      if(isCustom){ var rm=card.querySelector(".rm"); if(rm) rm.onclick=function(ev){ ev.stopPropagation(); removePhrase(p.id); }; }
+      listEl.appendChild(card);
     });
   }
 
@@ -411,7 +507,8 @@
     counts[id]=next;
     total=Math.max(0,total+applied);
     today=Math.max(0,today+applied);
-    save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_DATE,todayStr());
+    var d=todayStr(); log[d]=Math.max(0,(log[d]||0)+applied);
+    save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_DATE,d); save(K_LOG,log);
     var t=document.getElementById("t_"+id); if(t) t.textContent=counts[id];
     document.getElementById("totalNum").textContent=total;
     document.getElementById("todayNum").textContent=today;
@@ -429,23 +526,29 @@
   // ---- reset ----
   window.resetToday=function(){
     if(!confirm("Reset today's count to 0? Your all-time total stays.")) return;
-    today=0; save(K_TODAY,0); document.getElementById("todayNum").textContent=0;
+    today=0; log[todayStr()]=0;
+    save(K_TODAY,0); save(K_LOG,log);
+    document.getElementById("todayNum").textContent=0;
+    if(document.getElementById("panHistory").classList.contains("active")) renderHistory();
   };
   window.resetAll=function(){
-    if(!confirm("Reset ALL thanksgiving counts to 0? This clears every tally.")) return;
-    counts={}; total=0; today=0;
+    if(!confirm("Reset ALL thanksgiving counts to 0? This clears every tally and the daily history.")) return;
+    counts={}; total=0; today=0; log={};
     PHRASES.forEach(function(p){counts[p.id]=0;});
-    save(K_COUNTS,counts); save(K_TOTAL,0); save(K_TODAY,0);
+    save(K_COUNTS,counts); save(K_TOTAL,0); save(K_TODAY,0); save(K_LOG,log);
     refreshTotals();
+    if(document.getElementById("panHistory").classList.contains("active")) renderHistory();
   };
 
   // ---- tabs ----
   window.showTab=function(which){
-    var thank=which==="thank";
-    document.getElementById("panThank").classList.toggle("active",thank);
-    document.getElementById("panTrust").classList.toggle("active",!thank);
-    document.getElementById("tabThank").classList.toggle("active",thank);
-    document.getElementById("tabTrust").classList.toggle("active",!thank);
+    var panels={thank:"panThank",trust:"panTrust",history:"panHistory"};
+    var tabs={thank:"tabThank",trust:"tabTrust",history:"tabHistory"};
+    for(var key in panels){
+      document.getElementById(panels[key]).classList.toggle("active", key===which);
+      document.getElementById(tabs[key]).classList.toggle("active", key===which);
+    }
+    if(which==="history") renderHistory();
   };
 
   // ---- TRUST ----
@@ -496,10 +599,71 @@
   function niceDate(){ var d=new Date(); var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return m[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
 
+  // ---- HISTORY (dated: per day / week / month / year, plus cumulative) ----
+  var MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  function nf(n){ try{ return (n||0).toLocaleString(); }catch(e){ return String(n||0); } }
+  function weekStartOf(d){ var x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); x.setDate(x.getDate()-x.getDay()); return x; }
+  function fmtDayLabel(iso){ var d=dayObj(iso); return DOW[d.getDay()]+", "+MONS[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }
+  function fmtWeekLabel(iso){
+    var a=dayObj(iso), b=new Date(a); b.setDate(a.getDate()+6);
+    if(a.getFullYear()!==b.getFullYear()) return MONS[a.getMonth()]+" "+a.getDate()+", "+a.getFullYear()+" – "+MONS[b.getMonth()]+" "+b.getDate()+", "+b.getFullYear();
+    if(a.getMonth()!==b.getMonth())       return MONS[a.getMonth()]+" "+a.getDate()+" – "+MONS[b.getMonth()]+" "+b.getDate()+", "+b.getFullYear();
+    return MONS[a.getMonth()]+" "+a.getDate()+" – "+b.getDate()+", "+b.getFullYear();
+  }
+  function fmtMonthLabel(ym){ var p=ym.split("-"); return MON[(+p[1])-1]+" "+p[0]; }
+  function rowHtml(label, sub, val, cls){
+    return '<div class="hrow'+(cls?(" "+cls):"")+'"><div class="lab">'+label+(sub?('<small>'+sub+'</small>'):"")+'</div><div class="val">'+nf(val)+'</div></div>';
+  }
+
+  function renderHistory(){
+    var t=todayStr();
+    var days=[], weeks={}, weeksOrder=[], months={}, monthsOrder=[], years={}, yearsOrder=[];
+    var keys=[]; for(var k in log){ if(log.hasOwnProperty(k) && (log[k]||0)>0) keys.push(k); }
+    keys.sort(); // ascending YYYY-MM-DD
+    keys.forEach(function(key){
+      var v=log[key]||0;
+      days.push({k:key,v:v});
+      var wk=isoDay(weekStartOf(dayObj(key)));
+      if(weeks[wk]==null){ weeks[wk]=0; weeksOrder.push(wk); } weeks[wk]+=v;
+      var mo=key.slice(0,7); if(months[mo]==null){ months[mo]=0; monthsOrder.push(mo); } months[mo]+=v;
+      var yr=key.slice(0,4); if(years[yr]==null){ years[yr]=0; yearsOrder.push(yr); } years[yr]+=v;
+    });
+
+    var curWeek=isoDay(weekStartOf(new Date()));
+    document.getElementById("hToday").textContent=nf(log[t]||0);
+    document.getElementById("hTodayD").textContent=fmtDayLabel(t);
+    document.getElementById("hWeek").textContent=nf(weeks[curWeek]||0);
+    document.getElementById("hWeekD").textContent=fmtWeekLabel(curWeek);
+    document.getElementById("hMonth").textContent=nf(months[t.slice(0,7)]||0);
+    document.getElementById("hMonthD").textContent=fmtMonthLabel(t.slice(0,7));
+    document.getElementById("hYear").textContent=nf(years[t.slice(0,4)]||0);
+    document.getElementById("hYearD").textContent=t.slice(0,4);
+    document.getElementById("hTotal").textContent=nf(total);
+    document.getElementById("hTotalD").textContent="as of "+fmtDayLabel(t);
+
+    var dEl=document.getElementById("histDays");
+    if(!days.length){ dEl.innerHTML='<div class="empty">Your first counted day will appear here.</div>'; }
+    else{ var h=""; for(var i=days.length-1;i>=0;i--){ h+=rowHtml(fmtDayLabel(days[i].k),"",days[i].v, days[i].k===t?"today-row":""); } dEl.innerHTML=h; }
+
+    var wEl=document.getElementById("histWeeks");
+    if(!weeksOrder.length){ wEl.innerHTML='<div class="empty">Weeks add up here as you go.</div>'; }
+    else{ var hw=""; for(var j=weeksOrder.length-1;j>=0;j--){ var wk=weeksOrder[j]; hw+=rowHtml(fmtWeekLabel(wk),"Week", weeks[wk], wk===curWeek?"today-row":""); } wEl.innerHTML=hw; }
+
+    var mEl=document.getElementById("histMonths");
+    if(!monthsOrder.length){ mEl.innerHTML='<div class="empty">Months add up here as you go.</div>'; }
+    else{ var hm=""; for(var a=monthsOrder.length-1;a>=0;a--){ var mo=monthsOrder[a]; hm+=rowHtml(fmtMonthLabel(mo),"", months[mo], mo===t.slice(0,7)?"today-row":""); } mEl.innerHTML=hm; }
+
+    var yEl=document.getElementById("histYears");
+    if(!yearsOrder.length){ yEl.innerHTML='<div class="empty">Years add up here as you go.</div>'; }
+    else{ var hy=""; for(var b=yearsOrder.length-1;b>=0;b--){ var yr=yearsOrder[b]; hy+=rowHtml(yr,"", years[yr], yr===t.slice(0,4)?"today-row":""); } yEl.innerHTML=hy; }
+  }
+
   // ---- backup & restore (never lose your trust entries) ----
   window.backupData=function(){
-    var payload={ app:"thank-and-trust", v:1, exported:new Date().toISOString(),
-      counts:counts, total:total, today:today, date:lastDate, trust:trust, custom:custom };
+    var payload={ app:"thank-and-trust", v:2, exported:new Date().toISOString(),
+      counts:counts, total:total, today:today, date:lastDate, trust:trust, custom:custom, log:log };
     var str=JSON.stringify(payload);
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(str).then(
@@ -515,12 +679,15 @@
       var d=JSON.parse(str);
       if(d.counts) counts=d.counts;
       if(typeof d.total==="number") total=d.total;
-      if(typeof d.today==="number") today=d.today;
-      if(d.date) lastDate=d.date;
       if(d.trust) trust=d.trust;
       if(d.custom) custom=d.custom;
-      save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_DATE,lastDate); save(K_TRUST,trust); save(K_CUSTOM,custom);
-      renderPhrases(); refreshTotals(); renderTrust();
+      // daily history (normalize keys; seed from legacy "today" if the backup predates the log)
+      log={};
+      if(d.log && typeof d.log==="object"){ for(var kk in d.log){ if(d.log.hasOwnProperty(kk)){ var nk=normDay(kk); log[nk]=(log[nk]||0)+(d.log[kk]||0); } } }
+      if(!Object.keys(log).length && typeof d.today==="number" && d.today>0 && d.date){ log[normDay(d.date)]=d.today; }
+      today=log[todayStr()]||0; lastDate=todayStr();
+      save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_DATE,lastDate); save(K_TRUST,trust); save(K_CUSTOM,custom); save(K_LOG,log);
+      renderPhrases(); refreshTotals(); renderTrust(); renderHistory();
       popToast("Restored","Welcome back — nothing lost.");
     }catch(e){ popToast("Couldn’t read that","Make sure you pasted the full backup text."); }
   };
@@ -557,26 +724,41 @@
   function miniConfetti(){ if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; spawn(70); }
 
   // ---- Speech recognition (Listen & count, real-time) ----
-  var recog=null, listening=false, counted={}, doneIdx={}, restartOK=false;
+  var recog=null, listening=false, seen={}, restartOK=false;
+  var lastFinalSig="", lastFinalAt=0;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  function normalize(s){ return (" "+s.toLowerCase()+" ").replace(/[^a-z\s]/g," ").replace(/\s+/g," "); }
-  function flashPhrase(id){ var t=document.getElementById("t_"+id); if(t) flash(t.parentElement); }
+  function normalize(s){ return (" "+String(s).toLowerCase()+" ").replace(/[^a-z\s]/g," ").replace(/\s+/g," "); }
+  function flashPhrase(id){ var t=document.getElementById("t_"+id); if(t){ var card=t.closest(".phrase"); if(card) flash(card); } }
 
+  // whole-phrase occurrence count, respecting word boundaries so "jesus" can't match inside another word,
+  // while back-to-back repeats ("...jesus thank you jesus...") still each count.
   function countOcc(text, keys){
-    var total=0;
+    var n=0;
     for(var j=0;j<keys.length;j++){
-      var key=keys[j], idx=text.indexOf(key), g=0;
-      while(idx>-1 && g<80){ total++; idx=text.indexOf(key, idx+key.length); g++; }
+      var key=" "+keys[j]+" ", idx=text.indexOf(key), g=0;
+      while(idx>-1 && g<400){ n++; idx=text.indexOf(key, idx+key.length-1); g++; }
     }
-    return total;
+    return n;
+  }
+  // drop the last, still-forming word from an interim transcript, so a phrase is only counted once it's fully spoken
+  function dropLastToken(padded){ var t=padded.replace(/^\s+|\s+$/g,""); var i=t.lastIndexOf(" "); return " "+(i>-1?t.slice(0,i):"")+" "; }
+
+  var heardTimer=null;
+  function showHeard(txt, settled){
+    var el=document.getElementById("heardLive"); if(!el) return;
+    if(!listening){ el.textContent=""; el.classList.remove("show"); return; }
+    txt=(txt||"").replace(/\s+/g," ").trim();
+    var w=txt.split(" "); if(w.length>7) txt="… "+w.slice(-7).join(" ");
+    el.textContent = txt ? ("“"+txt+"”") : "…listening";
+    el.classList.add("show");
+    if(heardTimer) clearTimeout(heardTimer);
+    if(settled){ heardTimer=setTimeout(function(){ if(el && listening) el.textContent="…listening"; },1400); }
   }
 
-  var DEFAULT_HINT="Tap a phrase each time you say it — or press “Listen & count” and it will tally as you speak.";
+  var DEFAULT_HINT="Press “Listen & count” and speak your thanksgivings — each is tallied as you say it.";
 
   window.toggleListen=function(){
-    var btn=document.getElementById("listenBtn");
-    var hint=document.getElementById("listenHint");
-    if(!SR){ popToast("Voice not available here","Your phone’s browser won’t allow live listening. Tapping still counts everything."); return; }
+    if(!SR){ popToast("Voice not available here","This browser can’t do voice counting. Open Thank & Trust in Chrome, or in Safari on an iPhone."); return; }
     if(listening){ stopListen(); return; }
     startListen();
   };
@@ -585,40 +767,51 @@
     var btn=document.getElementById("listenBtn");
     var hint=document.getElementById("listenHint");
     try{
-      counted={}; doneIdx={};
+      seen={}; lastFinalSig=""; lastFinalAt=0;
       recog=new SR();
       recog.continuous=true;
-      recog.interimResults=false;  // count only finalized phrases — prevents Samsung/Android over-counting
+      recog.interimResults=true;   // stream live guesses so the tally climbs AS you speak
+      recog.maxAlternatives=1;
       recog.lang="en-US";
       recog.onresult=function(e){
-        for(var i=0;i<e.results.length;i++){
-          if(!e.results[i].isFinal) continue;      // ignore live guesses; count only settled speech
-          var heard=normalize(e.results[i][0].transcript);
-          if(!counted[i]) counted[i]={};
+        var start=(typeof e.resultIndex==="number")?e.resultIndex:0;
+        for(var i=start;i<e.results.length;i++){
+          var res=e.results[i], isFinal=!!res.isFinal;
+          var raw=(res[0]&&res[0].transcript)||"";
+          showHeard(raw, isFinal);
+          var norm=normalize(raw);
+          // Samsung/Android sometimes emit the same finished phrase twice as separate results — drop an identical final within ~0.9s
+          if(isFinal){
+            var now=Date.now();
+            if(norm===lastFinalSig && (now-lastFinalAt)<900){ continue; }
+            lastFinalSig=norm; lastFinalAt=now;
+          }
+          // interim: ignore the last (still-forming) word; final: use the whole thing. Count only the DELTA for this
+          // result index, so re-firing the same guess can never re-count a phrase (this is what stops the racing).
+          var text=isFinal?norm:dropLastToken(norm);
+          if(!seen[i]) seen[i]={};
           PHRASES.forEach(function(p){
-            var occ=countOcc(heard,p.hear);
-            var prev=counted[i][p.id]||0;
-            if(occ>prev){                          // count each newly-heard mention exactly once
-              for(var k=0;k<(occ-prev);k++){ bump(p.id); }
-              counted[i][p.id]=occ;
-              flashPhrase(p.id);
-            }
+            var occ=countOcc(text,p.hear), had=seen[i][p.id]||0;
+            if(occ>had){ seen[i][p.id]=occ; for(var k=0;k<(occ-had);k++){ bump(p.id); } flashPhrase(p.id); }
+            else if(isFinal && occ<had){ seen[i][p.id]=occ; bumpBy(p.id, occ-had); }   // rare: settle a mis-heard over-count back down
           });
         }
       };
       recog.onend=function(){
-        // iOS ends sessions after short pauses — restart to stay live
-        if(restartOK){ counted={}; doneIdx={}; try{ recog.start(); }catch(e){ setTimeout(function(){ if(restartOK){ try{recog.start();}catch(x){} } },400); } }
+        // Safari/iOS end a session after each pause; restart to stay live. A new session resets result indices, so clear per-index memory.
+        if(restartOK){ seen={}; try{ recog.start(); }catch(e){ setTimeout(function(){ if(restartOK){ try{recog.start();}catch(x){} } },400); } }
+        else { showHeard("", true); }
       };
       recog.onerror=function(ev){
-        if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){ stopListen(); popToast("Microphone blocked","Open the app in Safari (not the home-screen icon) and allow the mic. Tapping always works."); }
-        else if(ev.error==="audio-capture"){ stopListen(); popToast("No microphone","Couldn’t reach a mic. Tapping counts everything."); }
-        // "no-speech" / "network" — let onend restart quietly
+        if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){ stopListen(); popToast("Microphone blocked","Allow the mic for this page (in Safari, not the home-screen icon), then press Listen again."); }
+        else if(ev.error==="audio-capture"){ stopListen(); popToast("No microphone","Couldn’t reach a mic — check your phone’s mic permission and try again."); }
+        // "no-speech" / "network" / "aborted" — let onend restart quietly
       };
       restartOK=true; recog.start(); listening=true;
-      btn.classList.add("on"); btn.textContent="● Listening… tap to stop";
-      hint.textContent="Listening — say each thanksgiving clearly and it counts once, a moment after you finish. One voice at a time is most accurate; with a group, tapping is best.";
-    }catch(err){ popToast("Couldn’t start listening","Try once more, or just tap the phrases."); }
+      btn.classList.add("on"); btn.textContent="● Listening… press to stop";
+      hint.textContent="Listening — each thanksgiving is counted once, as you say it. Speak clearly, one voice at a time, for the surest count.";
+      showHeard("", true);
+    }catch(err){ popToast("Couldn’t start listening","Try once more, and check the mic permission for this page."); }
   }
 
   function stopListen(){
@@ -627,6 +820,7 @@
     var btn=document.getElementById("listenBtn");
     btn.classList.remove("on"); btn.textContent="🎙 Listen & count";
     document.getElementById("listenHint").textContent=DEFAULT_HINT;
+    showHeard("", true);
   }
   document.getElementById("listenHint").textContent=DEFAULT_HINT;
   if(!SR){ document.getElementById("listenBtn").style.opacity=".55"; document.getElementById("listenBtn").textContent="🎙 Voice not supported here"; }
@@ -634,9 +828,10 @@
   // init
   refreshTotals();
   renderTrust();
+  renderHistory();
 
   // save on hide (mobile safety)
-  document.addEventListener("visibilitychange",function(){ if(document.hidden){ save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_TRUST,trust); save(K_CUSTOM,custom); } });
+  document.addEventListener("visibilitychange",function(){ if(document.hidden){ save(K_COUNTS,counts); save(K_TOTAL,total); save(K_TODAY,today); save(K_TRUST,trust); save(K_CUSTOM,custom); save(K_LOG,log); } });
 })();
 </script>
 </body>

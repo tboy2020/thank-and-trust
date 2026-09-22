@@ -987,6 +987,7 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
       '<button class="btn listen" id="n-listen" onclick="namesToggleListen()">🎙 Listen</button>'+
       '<button class="btn" onclick="namesRestart()">Restart</button>'+
     '</div>'+
+    '<div class="heard" id="n-heard"></div>'+
     '<p class="hint" id="n-hint">Say “Thank You, [Name]” — or “[Name], I thank You” — or just tap. Both count. Stop anytime; it holds your place.</p>';
   }
   function wingTitleForSession(si){ for(var i=0;i<DATA.wings.length;i++){ if(DATA.wings[i].sess.indexOf(si)>-1) return DATA.wings[i].t; } return ""; }
@@ -1097,6 +1098,17 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
     }
     return true;
   }
+  var nHeardTimer=null;
+  function showNHeard(txt, settled){
+    var el=document.getElementById("n-heard"); if(!el) return;
+    if(!lOn){ el.textContent=""; el.classList.remove("show"); return; }
+    txt=(txt||"").replace(/\s+/g," ").trim();
+    var w=txt.split(" "); if(w.length>7) txt="… "+w.slice(-7).join(" ");
+    el.textContent = txt ? ("“"+txt+"”") : "…listening";
+    el.classList.add("show");
+    if(nHeardTimer) clearTimeout(nHeardTimer);
+    if(settled){ nHeardTimer=setTimeout(function(){ if(el && lOn) el.textContent="…listening"; },1400); }
+  }
   window.namesToggleListen=function(){
     if(!SR){ toast("Voice not available here","This browser can’t do voice. Open in Chrome, or Safari on an iPhone, and allow the mic."); return; }
     if(lOn){ stopLitanyListen(); return; }
@@ -1105,17 +1117,20 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
   function startLitanyListen(){
     try{
       if(window.__ttStopListen) window.__ttStopListen();   // free the mic from the Thank tab
-      lrec=new SR(); lrec.continuous=true; lrec.interimResults=false; lrec.lang="en-US";
+      lrec=new SR(); lrec.continuous=true; lrec.interimResults=true; lrec.maxAlternatives=1; lrec.lang="en-US";
       lrec.onresult=function(ev){
-        for(var i=0;i<ev.results.length;i++){
-          if(!ev.results[i].isFinal) continue;
-          if(heardCurrent(norm(ev.results[i][0].transcript))) litAdvance();
+        var start=(typeof ev.resultIndex==="number")?ev.resultIndex:0;
+        for(var i=start;i<ev.results.length;i++){
+          var res=ev.results[i], raw=(res[0]&&res[0].transcript)||"";
+          showNHeard(raw, !!res.isFinal);                 // live "what it heard" line, like the Thank tab
+          if(res.isFinal && heardCurrent(norm(raw))) litAdvance();
         }
       };
       lrec.onend=function(){ if(lRestart){ try{lrec.start();}catch(e){ setTimeout(function(){ if(lRestart){try{lrec.start();}catch(x){}} },400);} } };
       lrec.onerror=function(ev){ if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){ stopLitanyListen(); toast("Microphone blocked","Allow the mic for this page (in Safari, not the home-screen icon), then press Listen again."); } };
       lRestart=true; lrec.start(); lOn=true;
       if(window.__ttAcquireWake) window.__ttAcquireWake();
+      showNHeard("", true);
       var b=document.getElementById("n-listen"); if(b){ b.classList.add("on"); b.textContent="● Listening"; }
       var h=document.getElementById("n-hint"); if(h) h.textContent="Listening — say this name aloud and it advances. Say it your way; the screen stays awake while it listens.";
     }catch(e){ toast("Couldn’t start listening","Tap the button to move through the names."); }
@@ -1125,6 +1140,7 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
     lOn=false; lRestart=false; try{ if(lrec){ lrec.onend=null; lrec.stop(); } }catch(e){}
     if(was && window.__ttReleaseWake) window.__ttReleaseWake();
     var b=document.getElementById("n-listen"); if(b){ b.classList.remove("on"); b.textContent="🎙 Listen"; }
+    showNHeard("", true);
   }
 
   // ---- expose to the host app ----

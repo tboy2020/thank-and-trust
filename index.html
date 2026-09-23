@@ -796,6 +796,20 @@
   }
   // drop the last, still-forming word from an interim transcript, so a phrase is only counted once it's fully spoken
   function dropLastToken(padded){ var t=padded.replace(/^\s+|\s+$/g,""); var i=t.lastIndexOf(" "); return " "+(i>-1?t.slice(0,i):"")+" "; }
+  // count phrases left-to-right, CONSUMING matched words, so overlapping phrases can't double-count across a
+  // boundary (e.g. "...i thank you [jesus] i thank you..." must not also count a phantom "thank you jesus").
+  function matchAt(words,pos,kw){ if(pos+kw.length>words.length) return false; for(var i=0;i<kw.length;i++){ if(words[pos+i]!==kw[i]) return false; } return true; }
+  function scanCounts(text){
+    var s=text.replace(/^\s+|\s+$/g,""), words=s?s.split(" "):[], out={}, pos=0;
+    while(pos<words.length){
+      var bestId=null, bestLen=0;
+      for(var pi=0;pi<PHRASES.length;pi++){ var hear=PHRASES[pi].hear||[];
+        for(var hi=0;hi<hear.length;hi++){ var kw=hear[hi].split(" ");
+          if(kw.length>bestLen && matchAt(words,pos,kw)){ bestLen=kw.length; bestId=PHRASES[pi].id; } } }
+      if(bestId){ out[bestId]=(out[bestId]||0)+1; pos+=bestLen; } else pos++;
+    }
+    return out;
+  }
 
   var heardTimer=null;
   function showHeard(txt, settled){
@@ -858,8 +872,9 @@
           // result index, so re-firing the same guess can never re-count a phrase (this is what stops the racing).
           var text=isFinal?norm:dropLastToken(norm);
           if(!seen[i]) seen[i]={};
+          var cnt=scanCounts(text);                        // non-overlapping counts for this transcript
           PHRASES.forEach(function(p){
-            var occ=countOcc(text,p.hear), had=seen[i][p.id]||0;
+            var occ=cnt[p.id]||0, had=seen[i][p.id]||0;
             if(occ>had){ seen[i][p.id]=occ; for(var k=0;k<(occ-had);k++){ bump(p.id); } flashPhrase(p.id); }
             else if(isFinal && occ<had){ seen[i][p.id]=occ; bumpBy(p.id, occ-had); }   // rare: settle a mis-heard over-count back down
           });

@@ -1106,7 +1106,7 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
   window.namesHome=function(){ stopLitanyListen(); mountHome(); };
 
   // ================= LITANY VOICE =================
-  var lrec=null, lOn=false, lRestart=false, curKeys=[], curWhole=false, consumed={};
+  var lrec=null, lOn=false, lRestart=false, curReq=[], curWhole=false, curFull="", consumed={};
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   // canonicalize British <-> American spellings so an en-US recognizer ("savior") matches a KJV name ("Saviour")
   function americanize(t){ return t
@@ -1116,27 +1116,38 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
     .replace(/neighbour/g,"neighbor").replace(/succour/g,"succor").replace(/judgement/g,"judgment"); }
   function norm(s){ return americanize((" "+String(s).toLowerCase()+" ").replace(/[^a-z\s]/g," ").replace(/\s+/g," ")); }
   function stemw(w){ var suf=["iness","ousness","ness","ing","eth","est","ers","er","ed","es","s"]; for(var i=0;i<suf.length;i++){var x=suf[i]; if(w.length-x.length>=3 && w.slice(-x.length)===x) return w.slice(0,-x.length);} return w; }
+  // --- match the WHOLE displayed name, said IN ORDER, so it can't advance until you finish the name ---
+  var STOP={the:1,of:1,a:1,an:1,and:1,to:1,unto:1,is:1,it:1,his:1,him:1,he:1,for:1,with:1,in:1,on:1,that:1,which:1,us:1,from:1,o:1,ye:1,thy:1,thou:1,thee:1,hath:1,was:1,were:1,be:1,are:1,my:1,me:1,our:1,so:1,as:1,by:1,at:1,into:1,upon:1,i:1,am:1,who:1,whom:1,ever:1};
+  // common speech-to-text mishears / soundalikes (e.g. you say "High", it writes "I")
+  var HOMO={high:["hi","i","aye","eye"],son:["sun"],sun:["son"],reign:["rain","rein","reigns","reigneth"],holy:["wholly","holly"],thy:["thigh"],word:["ward"],peace:["piece"],great:["grate"],one:["won"],way:["weigh"],rock:["roc"],bread:["bred"],root:["route"],lamb:["lam","lamp"],grace:["grays"],know:["no"],bright:["brite"],morning:["mourning"],heir:["air","hair","ere"],right:["write","rite"],almighty:["mighty"],shepherd:["shepard","sheperd","shephard"],zion:["sion","scion"],jah:["ja","jaw"],emmanuel:["emanuel","immanuel"],immanuel:["emmanuel","emanuel"],lord:["lard"],rose:["roze"]};
+  function lev(a,b){ var m=a.length,n=b.length; if(Math.abs(m-n)>1) return 2; var d=[],i,j; for(i=0;i<=m;i++)d[i]=[i]; for(j=0;j<=n;j++)d[0][j]=j; for(i=1;i<=m;i++)for(j=1;j<=n;j++){var c=a.charAt(i-1)===b.charAt(j-1)?0:1; d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);} return d[m][n]; }
+  function baseof(w){ return w.replace(/(eth|ing|ed|es|s)$/,""); }
+  function homoHit(a,b){ var A=[a,baseof(a)],B=[b,baseof(b)],i,j; for(i=0;i<A.length;i++){ for(j=0;j<B.length;j++){ if(HOMO[B[j]]&&HOMO[B[j]].indexOf(A[i])>-1) return true; if(HOMO[A[i]]&&HOMO[A[i]].indexOf(B[j])>-1) return true; } } return false; }
+  function wordMatch(spoken, req){
+    if(!spoken||!req) return false;
+    if(spoken===req) return true;
+    if((spoken.indexOf(req)===0 || req.indexOf(spoken)===0) && Math.min(spoken.length,req.length)>=3) return true;  // root vs inflection (reign/reigns)
+    if(homoHit(spoken, req)) return true;                                       // soundalikes, root-aware (rains/reigns, high/i)
+    if((spoken.length>=4||req.length>=4) && lev(spoken,req)<=1) return true;    // one-letter mishear (blessd/blessed)
+    return false;
+  }
   function listenPrimeCurrent(){
-    if(!run||run.idx>=run.list.length){ curKeys=[]; return; }
+    curReq=[]; curFull=""; curWhole=false;
+    if(!run||run.idx>=run.list.length) return;
     var e=run.list[run.idx];
-    curWhole = (e.keys && e.keys.length===1 && e.keys[0].indexOf(" ")>-1 && e.keys[0].split(" ").length>=3);
-    curKeys = (e.keys||[]).map(function(k){ return americanize(k); });
+    curFull = norm(e.name).replace(/^\s+|\s+$/g,"");        // the whole displayed name, normalized
+    var all = curFull.split(" ");
+    for(var i=0;i<all.length;i++){ var w=all[i]; if(w && !STOP[w]) curReq.push(w); }
+    curWhole = (curReq.length===0);                         // e.g. "I AM THAT I AM" -> match the whole phrase instead
   }
   function heardCurrent(text){
-    if(curWhole){ return text.indexOf(curKeys[0])>-1; }
-    if(!curKeys.length) return false;
-    // keys are already stemmed roots (e.g. "bless"); match by prefix against the spoken words, don't re-stem them
-    var toks = text.split(" ");
-    for(var i=0;i<curKeys.length;i++){
-      var parts=curKeys[i].split(" "), ok=true;
-      for(var j=0;j<parts.length;j++){
-        var key=parts[j], hit=(key==="");
-        if(!hit){ for(var t=0;t<toks.length;t++){ var w=toks[t]; if(w && (w===key || w.indexOf(key)===0 || (key.indexOf(w)===0 && w.length>=4))){ hit=true; break; } } }
-        if(!hit){ ok=false; break; }
-      }
-      if(!ok) return false;
-    }
-    return true;
+    if(curWhole){ return text.indexOf(curFull)>-1; }
+    if(!curReq.length) return false;
+    var toks = text.replace(/^\s+|\s+$/g,"").split(" ");
+    // EVERY significant word of the name must be heard, in order -> you must finish the whole name before it advances
+    var ri=0;
+    for(var t=0; t<toks.length && ri<curReq.length; t++){ if(toks[t] && wordMatch(toks[t], curReq[ri])) ri++; }
+    return ri>=curReq.length;
   }
   var nHeardTimer=null;
   function showNHeard(txt, settled){

@@ -1120,7 +1120,7 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
   var STOP={the:1,of:1,a:1,an:1,and:1,to:1,unto:1,is:1,it:1,his:1,him:1,he:1,for:1,with:1,in:1,on:1,that:1,which:1,us:1,from:1,o:1,ye:1,thy:1,thou:1,thee:1,hath:1,was:1,were:1,be:1,are:1,my:1,me:1,our:1,so:1,as:1,by:1,at:1,into:1,upon:1,i:1,am:1,who:1,whom:1,ever:1};
   // common speech-to-text mishears / soundalikes (e.g. you say "High", it writes "I")
   var HOMO={high:["hi","i","aye","eye"],son:["sun"],sun:["son"],reign:["rain","rein","reigns","reigneth"],holy:["wholly","holly"],thy:["thigh"],word:["ward"],peace:["piece"],great:["grate"],one:["won"],way:["weigh"],rock:["roc"],bread:["bred"],root:["route"],lamb:["lam","lamp"],grace:["grays"],know:["no"],bright:["brite"],morning:["mourning"],heir:["air","hair","ere"],right:["write","rite"],almighty:["mighty"],shepherd:["shepard","sheperd","shephard"],zion:["sion","scion"],jah:["ja","jaw"],emmanuel:["emanuel","immanuel"],immanuel:["emmanuel","emanuel"],lord:["lard"],rose:["roze"]};
-  function lev(a,b){ var m=a.length,n=b.length; if(Math.abs(m-n)>1) return 2; var d=[],i,j; for(i=0;i<=m;i++)d[i]=[i]; for(j=0;j<=n;j++)d[0][j]=j; for(i=1;i<=m;i++)for(j=1;j<=n;j++){var c=a.charAt(i-1)===b.charAt(j-1)?0:1; d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);} return d[m][n]; }
+  function lev(a,b){ var m=a.length,n=b.length; if(Math.abs(m-n)>3) return 4; var d=[],i,j; for(i=0;i<=m;i++)d[i]=[i]; for(j=0;j<=n;j++)d[0][j]=j; for(i=1;i<=m;i++)for(j=1;j<=n;j++){var c=a.charAt(i-1)===b.charAt(j-1)?0:1; d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);} return d[m][n]; }
   function baseof(w){ return w.replace(/(eth|ing|ed|es|s)$/,""); }
   function homoHit(a,b){ var A=[a,baseof(a)],B=[b,baseof(b)],i,j; for(i=0;i<A.length;i++){ for(j=0;j<B.length;j++){ if(HOMO[B[j]]&&HOMO[B[j]].indexOf(A[i])>-1) return true; if(HOMO[A[i]]&&HOMO[A[i]].indexOf(B[j])>-1) return true; } } return false; }
   function wordMatch(spoken, req){
@@ -1128,7 +1128,8 @@ var TT_NAMES_DATA = {"wings":[{"id":"w1","t":"Who He Is","s":"His eternal being 
     if(spoken===req) return true;
     if((spoken.indexOf(req)===0 || req.indexOf(spoken)===0) && Math.min(spoken.length,req.length)>=3) return true;  // root vs inflection (reign/reigns)
     if(homoHit(spoken, req)) return true;                                       // soundalikes, root-aware (rains/reigns, high/i)
-    if((spoken.length>=4||req.length>=4) && lev(spoken,req)<=1) return true;    // one-letter mishear (blessd/blessed)
+    var L=Math.min(spoken.length,req.length), mx=(L>=7?2:(L>=5?1:0));           // scaled fuzzy: none for short words (lord≠word), 1 edit for medium, 2 for long (invisible/invincible)
+    if(mx>0 && lev(spoken,req)<=mx) return true;
     return false;
   }
   function listenPrimeCurrent(){

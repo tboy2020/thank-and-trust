@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Thank &amp; Trust — Movement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#0F2C4C;--navy-2:#153a63;--gold:#C9A227;--gold-lite:#E6C766;--verd:#2E7D6B;--verd-lite:#3C9C86;--cream:#F6F1E4;--ink:#12212f;--paper:#FBF8F0;--line:rgba(201,162,39,.28);}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:radial-gradient(1200px 600px at 50% -10%, #1b436f 0%, var(--navy) 55%, #0a2038 100%);min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+  .wrap{max-width:640px;margin:0 auto;padding:16px 16px 40px;}
+  header{text-align:center;padding:12px 0 6px;}
+  .eyebrow{font-family:'Saira Condensed',sans-serif;letter-spacing:.32em;text-transform:uppercase;font-size:11px;color:var(--gold-lite);font-weight:600;}
+  h1{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:34px;line-height:1;margin:5px 0 4px;color:#fff;text-transform:uppercase;}
+  h1 .amp{color:var(--gold);font-family:'Fraunces',serif;font-style:italic;font-weight:500;text-transform:none;font-size:29px;}
+  .who{font-size:12px;color:#9fb0c2;margin-top:4px;}
+  .who a{color:var(--gold-lite);text-decoration:none;cursor:pointer;}
+  #join .card{background:linear-gradient(180deg,var(--paper),#fff);border:1px solid var(--line);border-radius:22px;padding:22px 18px;box-shadow:0 16px 40px rgba(0,0,0,.3);margin-top:16px;}
+  #join .lead{font-family:'Fraunces',serif;font-style:italic;color:#5a5142;text-align:center;font-size:16px;line-height:1.5;margin:0 0 16px;}
+  #join label{font-family:'Saira Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;font-size:12px;color:var(--verd);font-weight:600;display:block;margin:12px 2px 6px;}
+  #join input{width:100%;border:1px solid var(--line);border-radius:14px;padding:14px;font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);background:#fff;}
+  #join input:focus{outline:2px solid var(--gold-lite);outline-offset:1px;}
+  .joinbtn{margin-top:18px;width:100%;font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:16px;border:0;border-radius:16px;padding:15px;cursor:pointer;color:var(--navy);background:linear-gradient(180deg,var(--gold-lite),var(--gold));box-shadow:0 8px 20px rgba(201,162,39,.3);}
+  .joinbtn:active{transform:scale(.99);}
+  .joinerr{color:#c0392b;font-size:13px;text-align:center;margin-top:10px;min-height:16px;}
+  #join .fine{font-size:11px;color:#8a97a6;text-align:center;margin-top:14px;line-height:1.5;}
+  #join .forgot{text-align:center;margin-top:12px;}
+  #join .forgot a{font-size:13px;color:var(--verd);font-weight:600;cursor:pointer;border-bottom:1px dashed rgba(46,125,107,.55);padding-bottom:1px;}
+  #join .forgotnote{font-size:12.5px;color:#5a5142;line-height:1.6;background:rgba(201,162,39,.09);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;}
+  #join .forgotnote b{color:#4a3f28;}
+  .privacy{display:flex;align-items:flex-start;gap:9px;background:rgba(46,125,107,.1);border:1px solid rgba(46,125,107,.32);border-radius:14px;padding:12px 13px;margin-top:14px;}
+  .privacy .lk{font-size:18px;flex:0 0 auto;}
+  .privacy .pt{font-size:12.5px;color:#2e5f52;line-height:1.5;}
+  .privacy .pt b{color:#1f4a3f;}
+  .tabs{display:flex;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:14px;padding:5px;margin:14px 0 14px;}
+  .tab{flex:1;font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:13px;color:#cdd8e6;background:transparent;border:0;border-radius:10px;padding:11px 6px;cursor:pointer;transition:.16s;}
+  .tab.active{background:linear-gradient(180deg,var(--gold-lite),var(--gold));color:var(--navy);box-shadow:0 6px 16px rgba(201,162,39,.25);}
+  .panel{display:none;animation:fade .3s ease;}
+  .panel.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .stat{background:linear-gradient(180deg,var(--paper),#fff);border:1px solid var(--line);border-radius:18px;padding:16px 8px;text-align:center;box-shadow:0 10px 24px rgba(0,0,0,.22);}
+  .stat .n{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:34px;line-height:1;color:var(--navy);}
+  .stat .k{font-family:'Saira Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:10px;color:var(--verd);font-weight:600;margin-top:5px;}
+  .section-h{font-family:'Saira Condensed',sans-serif;letter-spacing:.2em;text-transform:uppercase;font-size:12px;color:var(--gold-lite);font-weight:600;margin:20px 4px 10px;display:flex;align-items:center;gap:10px;}
+  .section-h::after{content:"";flex:1;height:1px;background:var(--line);}
+  .live{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 rgba(74,222,128,.6);animation:pulse 1.8s infinite;}
+  .live.off{background:#8794a6;animation:none;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,.5);}70%{box-shadow:0 0 0 8px rgba(74,222,128,0);}100%{box-shadow:0 0 0 0 rgba(74,222,128,0);}}
+  .feed{list-style:none;margin:0;padding:0;}
+  .fe{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:8px;box-shadow:0 5px 12px rgba(0,0,0,.14);animation:slidein .35s ease;}
+  @keyframes slidein{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}
+  .fe .ic{font-size:20px;flex:0 0 auto;}
+  .fe .body{flex:1;min-width:0;}
+  .fe .nm{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--navy);}
+  .fe .lb{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:#5a5142;}
+  .fe .x{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--verd);background:rgba(46,125,107,.1);border-radius:9px;padding:2px 8px;flex:0 0 auto;}
+  .fe.testimony{background:linear-gradient(180deg,#FFF7E0,#fff);border-color:var(--gold-lite);}
+  .fe.testimony .nm{color:var(--gold);font-family:'Fraunces',serif;font-style:italic;font-weight:500;}
+  .fe.join .nm{color:var(--verd);}
+  .empty{text-align:center;color:#9fb0c2;font-family:'Fraunces',serif;font-style:italic;font-size:15px;padding:16px 10px;}
+  .count-card{background:linear-gradient(180deg,var(--paper),#fff);border:1px solid var(--line);border-radius:20px;padding:18px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.26);}
+  .count-num{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:64px;line-height:.9;color:var(--navy);}
+  .count-label{font-family:'Saira Condensed',sans-serif;letter-spacing:.2em;text-transform:uppercase;font-size:11px;color:var(--verd);font-weight:600;margin-top:4px;}
+  .count-sub{font-size:12px;color:#5b6b7a;margin-top:8px;}
+  .listenrow{margin-top:14px;}
+  .btn.listen{width:100%;font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:14px;border-radius:14px;padding:14px;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.08);color:#e9e3d1;transition:.16s;}
+  .btn.listen.on{background:linear-gradient(180deg,var(--verd-lite),var(--verd));color:#fff;border-color:transparent;}
+  .btn.listen:active{transform:scale(.99);}
+  .heard{max-height:0;overflow:hidden;opacity:0;transition:opacity .2s;text-align:center;font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--gold-lite);white-space:nowrap;text-overflow:ellipsis;}
+  .heard.show{max-height:40px;opacity:.95;margin-top:9px;}
+  .phrases{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px;}
+  .phrase{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.94);padding:16px 18px;text-align:left;width:100%;box-shadow:0 6px 14px rgba(0,0,0,.18);cursor:default;transition:background .18s,box-shadow .18s;}
+  .phrase.pulse{background:#FFF7E0;box-shadow:0 0 0 3px var(--gold-lite),0 6px 14px rgba(0,0,0,.18);}
+  .phrase .txt{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:19px;color:var(--navy);}
+  .phrase .tally{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:22px;min-width:44px;text-align:center;color:var(--verd);background:rgba(46,125,107,.1);border-radius:12px;padding:4px 10px;}
+  .addphrase{display:flex;gap:8px;margin-top:12px;}
+  .addphrase input{flex:1;border:1px dashed var(--line);border-radius:14px;padding:13px 15px;font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--navy);background:rgba(255,255,255,.9);}
+  .addp-btn{font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px;border:0;border-radius:14px;padding:0 16px;cursor:pointer;color:var(--navy);background:linear-gradient(180deg,var(--gold-lite),var(--gold));}
+  .hint{font-size:12px;color:#9fb0c2;text-align:center;margin-top:12px;line-height:1.5;}
+  .lead2{font-family:'Fraunces',serif;font-style:italic;color:#e9e3d1;font-size:15px;line-height:1.5;text-align:center;margin:2px 0 12px;}
+  .lead2 .ref{display:block;font-style:normal;font-size:12px;color:var(--gold-lite);letter-spacing:.06em;margin-top:6px;}
+  .add-box{background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 8px 20px rgba(0,0,0,.2);}
+  .add-box .pre{font-family:'Saira Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:12px;color:var(--verd);font-weight:600;margin-bottom:8px;}
+  textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);resize:vertical;min-height:60px;background:#fff;}
+  textarea:focus{outline:2px solid var(--gold-lite);}
+  .add-btn{margin-top:10px;width:100%;font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:14px;border:0;border-radius:12px;padding:13px;cursor:pointer;color:var(--navy);background:linear-gradient(180deg,var(--gold-lite),var(--gold));}
+  .item{background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 6px 14px rgba(0,0,0,.16);}
+  .item.done{background:rgba(46,125,107,.12);border-color:rgba(46,125,107,.4);}
+  .item .body2{font-size:15px;line-height:1.5;color:var(--navy);}
+  .item.done .body2{color:var(--verd);}
+  .item .meta{font-size:11px;color:#8a97a6;margin-top:6px;}
+  .item .acts{display:flex;gap:8px;margin-top:10px;}
+  .mini{font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12px;border-radius:10px;padding:8px 12px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--navy);}
+  .mini.recv{background:linear-gradient(180deg,var(--verd-lite),var(--verd));color:#fff;border-color:transparent;}
+  .mini.del{color:#b4472f;border-color:rgba(180,71,47,.35);}
+  footer{text-align:center;margin-top:24px;padding-top:14px;border-top:1px solid var(--line);}
+  footer .g{font-family:'Fraunces',serif;font-style:italic;color:var(--gold-lite);font-size:15px;}
+  footer .amhg{font-family:'Saira Condensed',sans-serif;letter-spacing:.3em;font-size:11px;color:#7f8ea0;margin-top:6px;text-transform:uppercase;}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(160%);background:linear-gradient(180deg,var(--navy-2),var(--navy));color:#fff;border:1px solid var(--gold);border-radius:14px;padding:13px 20px;max-width:88%;box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:60;text-align:center;transition:transform .4s cubic-bezier(.2,.9,.3,1.2);font-size:14px;}
+  #toast.show{transform:translateX(-50%) translateY(0);}
+  .scrim{position:fixed;inset:0;background:rgba(10,20,35,.55);z-index:50;display:none;align-items:center;justify-content:center;padding:18px;}
+  .scrim.show{display:flex;}
+  .dlg{background:#fff;border-radius:20px;padding:20px;max-width:400px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.4);}
+  .dlg h3{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:20px;margin:0 0 6px;color:var(--navy);}
+  .dlg p{font-size:14px;color:#5f6f88;margin:0 0 12px;line-height:1.45;}
+  .dlg textarea{min-height:54px;}
+  .dlg .row{display:flex;gap:10px;margin-top:14px;}
+  .dbtn{flex:1;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:14px;border:0;border-radius:14px;padding:13px;cursor:pointer;}
+  .dbtn.share{color:var(--navy);background:linear-gradient(180deg,var(--gold-lite),var(--gold));}
+  .dbtn.keep{background:#eef2f7;color:#5f6f88;}
+  .hidden{display:none!important;}
+  /* ---- first-open loading splash (Apps Script cold start) ---- */
+  #bootLoader{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%, #1b436f 0%, var(--navy) 55%, #0a2038 100%);transition:opacity .45s ease;}
+  #bootLoader.hide{opacity:0;pointer-events:none;}
+  #bootLoader .bl-card{text-align:center;padding:24px;max-width:320px;}
+  #bootLoader .bl-spin{width:48px;height:48px;margin:0 auto 20px;border-radius:50%;border:4px solid rgba(230,199,102,.22);border-top-color:var(--gold-lite);animation:blspin .8s linear infinite;}
+  #bootLoader .bl-eye{font-family:'Saira Condensed',sans-serif;letter-spacing:.32em;text-transform:uppercase;font-size:11px;color:var(--gold-lite);font-weight:600;margin-bottom:7px;}
+  #bootLoader .bl-title{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:28px;color:#fff;text-transform:uppercase;line-height:1;}
+  #bootLoader .bl-title .amp{color:var(--gold);font-family:'Fraunces',serif;font-style:italic;font-weight:500;text-transform:none;}
+  #bootLoader .bl-sub{font-family:'Fraunces',serif;font-style:italic;font-size:13.5px;color:#cdd8e6;margin-top:13px;line-height:1.55;}
+  #bootLoader .bl-retry{margin-top:18px;font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:14px;border:0;border-radius:14px;padding:12px 24px;cursor:pointer;color:var(--navy);background:linear-gradient(180deg,var(--gold-lite),var(--gold));box-shadow:0 8px 20px rgba(201,162,39,.3);}
+  @keyframes blspin{to{transform:rotate(360deg);}}
+  /* ---- universal top loading bar (any server call in flight) ---- */
+  #netBar{position:fixed;top:0;left:0;height:3px;width:100%;z-index:320;pointer-events:none;opacity:0;transition:opacity .2s ease;}
+  #netBar.on{opacity:1;}
+  #netBar .bar{height:100%;width:38%;background:linear-gradient(90deg,var(--gold-lite),var(--gold));border-radius:0 3px 3px 0;animation:netslide 1.05s ease-in-out infinite;}
+  @keyframes netslide{0%{margin-left:-40%;}100%{margin-left:100%;}}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+<div id="bootLoader">
+  <div class="bl-card">
+    <div class="bl-spin"></div>
+    <div class="bl-eye">Cornerstone &bull; The Movement</div>
+    <div class="bl-title">Thank <span class="amp">&amp;</span> Trust</div>
+    <div class="bl-sub">Gathering the family in thanksgiving…<br>the first open can take a few seconds.</div>
+  </div>
+</div>
+<div id="netBar"><div class="bar"></div></div>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Cornerstone &bull; Family Altar</div>
+    <h1>Thank <span class="amp">&amp;</span> Trust</h1>
+    <div class="eyebrow" style="letter-spacing:.5em;color:#8ea6c4;">THE MOVEMENT</div>
+    <div class="who hidden" id="whoRow">Praying as <b id="whoName"></b> &bull; <a onclick="signOut()">sign out</a></div>
+  </header>
+
+  <section id="join">
+    <div class="card">
+      <p class="lead">Join the family giving thanks together. Pick a name and a 4-digit PIN.</p>
+      <label>Your name (first name is lovely)</label>
+      <input id="jName" type="text" maxlength="24" placeholder="e.g. Anu" autocomplete="off">
+      <label>Choose a 4-digit PIN</label>
+      <input id="jPin" type="tel" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off">
+      <button class="joinbtn" onclick="doJoin()">Join the movement</button>
+      <div class="joinerr" id="joinErr"></div>
+      <div class="privacy"><span class="lk">🔒</span><span class="pt"><b>Your journal stays private.</b> Only you can see your prayers — never another member, never in the feed. The family shares only the totals and, if you choose, an <b>anonymous</b> testimony.</span></div>
+      <div class="fine">Returning? Enter the same name and PIN to pick up where you left off. Glory to God alone.</div>
+      <div class="forgot"><a onclick="toggleForgot()">Forgot your PIN?</a></div>
+      <div class="forgotnote hidden" id="forgotNote">For your privacy, PINs are scrambled on our side — <b>no one can look yours up, not even us.</b> Take a breath and try a few (you get several tries before a short pause). Still stuck? Ask whoever invited you to the movement — they can reset your name so you set a fresh PIN. Your thanksgivings and private prayers stay safe either way. 🙏</div>
+    </div>
+  </section>
+
+  <section id="app" class="hidden">
+    <div class="tabs" role="tablist">
+      <button class="tab active" id="tabMove" onclick="showTab('move')">Movement</button>
+      <button class="tab" id="tabThank" onclick="showTab('thank')">Thank</button>
+      <button class="tab" id="tabTrust" onclick="showTab('trust')">Trust</button>
+    </div>
+
+    <div class="panel active" id="panMove">
+      <div class="stat-grid">
+        <div class="stat"><div class="n" id="sThanks">0</div><div class="k">Thanksgivings</div></div>
+        <div class="stat"><div class="n" id="sPeople">0</div><div class="k">In the family</div></div>
+        <div class="stat"><div class="n" id="sAnswered">0</div><div class="k">Answered</div></div>
+      </div>
+      <div class="section-h"><span class="live" id="liveDot"></span> <span id="liveLabel">Live &bull; the family right now</span></div>
+      <ul class="feed" id="feed"><li class="empty">Loading the movement…</li></ul>
+    </div>
+
+    <div class="panel" id="panThank">
+      <div class="count-card">
+        <div class="count-num" id="myTotal">0</div>
+        <div class="count-label">Your thanksgivings</div>
+        <div class="count-sub">Every one joins the family's count &amp; the live feed 🙏</div>
+      </div>
+      <div class="listenrow"><button class="btn listen" id="listenBtn" onclick="toggleListen()">🎙 Listen &amp; count</button></div>
+      <div class="heard" id="heard"></div>
+      <div class="phrases" id="phraseList"></div>
+      <div class="addphrase">
+        <input id="newPhrase" type="text" maxlength="40" placeholder="Add your own… e.g. Thank You Abba" onkeydown="if(event.key==='Enter'){addPhrase();}">
+        <button class="addp-btn" onclick="addPhrase()">+ Add</button>
+      </div>
+      <p class="hint" id="thankHint">Press <b>Listen &amp; count</b> and give thanks aloud — say “Thank You Jesus,” “Holy Spirit, I thank You,” or add your own below. Each one you speak is counted and joins the family feed with your name. 🙏</p>
+    </div>
+
+    <div class="panel" id="panTrust">
+      <p class="lead2">What things soever ye desire, when ye pray, believe that ye receive them.<span class="ref">Mark 11:24 &bull; KJV</span></p>
+      <div class="privacy" style="margin-top:0;margin-bottom:12px;"><span class="lk">🔒</span><span class="pt"><b>Only you can see this.</b> Your prayers are never shown to anyone. If one is answered, you may share it — always <b>anonymously</b>, as “The Lord has done it.”</span></div>
+      <div class="add-box">
+        <div class="pre">I trust the God and Father of our Lord Jesus to…</div>
+        <textarea id="trustInput" placeholder="e.g. …provide fully for my family this month, in Jesus' name."></textarea>
+        <button class="add-btn" onclick="addTrust()">Commit it &amp; trust Him</button>
+      </div>
+      <div class="section-h">Standing in faith</div>
+      <div id="openList"></div>
+      <div class="section-h">Answered — testimonies</div>
+      <div id="doneList"></div>
+    </div>
+  </section>
+
+  <footer><div class="g">Glory to God alone</div><div class="amhg">AMHG</div></footer>
+</div>
+
+<div id="toast"></div>
+
+<div class="scrim" id="shareScrim">
+  <div class="dlg">
+    <h3>He answered! 🎉</h3>
+    <p>Share it with the family to strengthen their faith? It stays <b>anonymous</b> — shown as “The Lord has done it.” Add a short line (optional), or keep it private.</p>
+    <textarea id="shareText" maxlength="140" placeholder="Optional short testimony… e.g. He provided every naira."></textarea>
+    <div class="row">
+      <button class="dbtn keep" onclick="closeShare(false)">Keep private</button>
+      <button class="dbtn share" onclick="closeShare(true)">Share anonymously</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  // ---------------- server bridge (real google.script.run OR local mock) ----------------
+  var ONLINE = (typeof google !== 'undefined' && google.script && google.script.run);
+  // Served TOP-LEVEL (GitHub Pages) the mic works but there's no google.script.run — so we reach the
+  // same movement backend with a simple cross-origin POST to the Apps Script /exec (doPost). On
+  // localhost we stay on the offline MOCK unless ?live=1 is passed, so dev testing never touches live data.
+  var EXEC_URL = 'https://script.google.com/macros/s/AKfycbyD5lDwnCPsIO1TEB4fkivFPBLcCy2F4cW7W3e4Okv7NjOBEtASF8Fnl_Bu_gcFN6h9/exec';
+  var LOCAL = /^(localhost|127\.|0\.0\.0\.0|\[)/.test(location.hostname) || location.protocol==='file:';
+  var USE_FETCH = !ONLINE && !!EXEC_URL && (!LOCAL || /[?&]live=1/.test(location.search));
+
+  // ---------------- boot splash + universal loading bar ----------------
+  var booted=false, bootTimer=null, netPending=0, netTimer=null, firstLoad=true;
+  function netStart(){ netPending++;
+    if(!booted) return;                                        // the full boot splash already covers the screen
+    if(netTimer || document.getElementById('netBar').className==='on') return;
+    netTimer=setTimeout(function(){ netTimer=null;             // only reveal the bar for calls slow enough to notice
+      if(netPending>0){ var b=document.getElementById('netBar'); if(b) b.className='on'; } }, 450);
+  }
+  function netEnd(){ netPending=Math.max(0,netPending-1);
+    if(netPending===0){ if(netTimer){ clearTimeout(netTimer); netTimer=null; }
+      var b=document.getElementById('netBar'); if(b) b.className=''; }
+  }
+  function hideBootLoader(){
+    if(bootTimer){ clearTimeout(bootTimer); bootTimer=null; }
+    booted=true;
+    var el=document.getElementById('bootLoader'); if(!el) return;
+    el.className='hide'; setTimeout(function(){ if(el) el.style.display='none'; }, 520);
+  }
+  function bootError(){
+    if(bootTimer){ clearTimeout(bootTimer); bootTimer=null; }   // don't let the failsafe tear down the retry screen
+    var el=document.getElementById('bootLoader'); if(!el) return;
+    el.style.display='flex'; el.className='';
+    el.innerHTML='<div class="bl-card"><div style="font-size:34px">🙏</div>'+
+      '<div class="bl-title" style="font-size:22px;margin-top:10px">Couldn’t reach the family</div>'+
+      '<div class="bl-sub">Please check your connection and try again.</div>'+
+      '<button class="bl-retry" onclick="location.reload()">Retry</button></div>';
+  }
+
+  function call(fn, args, ok, err){
+    netStart();
+    if(ONLINE){
+      var r = google.script.run.withSuccessHandler(function(v){ netEnd(); if(ok) ok(v); }).withFailureHandler(function(e){ netEnd(); if(err) err(e); });
+      r[fn].apply(r, args||[]);
+    } else if(USE_FETCH){
+      fetch(EXEC_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({fn:fn, args:args||[]})})
+        .then(function(r){ return r.text(); })
+        .then(function(t){ netEnd(); if(ok) ok(t); })
+        .catch(function(e){ netEnd(); if(err) err(e); });
+    } else {
+      try{ var v = MOCK[fn].apply(null, args||[]); setTimeout(function(){ netEnd(); if(ok) ok(v); }, 120); }
+      catch(e){ setTimeout(function(){ netEnd(); if(err) err(e); }, 120); }
+    }
+  }
+  function parse(v){ try{ return (typeof v==='string')? JSON.parse(v) : v; }catch(e){ return null; } }
+  function uid(){ return 'b'+(new Date().getTime())+'_'+Math.floor(Math.random()*1e6); }
+
+  // ---------------- local mock backend (mirrors the hardened API) ----------------
+  var MOCK = (function(){
+    function L(k,d){ try{ var v=localStorage.getItem('mk_'+k); return v==null?d:JSON.parse(v); }catch(e){ return d; } }
+    function S(k,v){ try{ localStorage.setItem('mk_'+k, JSON.stringify(v)); }catch(e){} }
+    function feedPush(name,label,kind,n){ var f=L('feed',[]); f.push({ts:new Date().getTime(),name:name,label:label,kind:kind,n:n||1}); if(f.length>300) f=f.slice(-300); S('feed',f); }
+    function snap(){ var st=L('stat',{t:0,p:0,a:0}); var f=L('feed',[]).slice(-40).reverse(); return JSON.stringify({totalThanks:st.t,people:st.p,answered:st.a,feed:f}); }
+    function sess(){ return L('sess',{}); }
+    function resolve(token){ return sess()[token]||null; }
+    return {
+      apiJoin:function(name,pin){ name=String(name||'').trim().slice(0,24); pin=String(pin||'').trim();
+        if(!name) return JSON.stringify({error:'Please enter your name.'});
+        if(!/^[0-9]{4}$/.test(pin)) return JSON.stringify({error:'Please choose a 4-digit PIN.'});
+        var profs=L('profs',{}), key=name.toLowerCase(), tk=uid(), sm=sess();
+        if(profs[key]){ if(profs[key].pin!==pin) return JSON.stringify({error:'That name and PIN don’t match.'}); sm[tk]=profs[key].id; S('sess',sm); return JSON.stringify({token:tk,displayName:name}); }
+        var id='p'+new Date().getTime(); profs[key]={id:id,pin:pin,name:name,total:0}; S('profs',profs);
+        var st=L('stat',{t:0,p:0,a:0}); st.p++; S('stat',st); feedPush(name,'joined the movement','join',1); sm[tk]=id; S('sess',sm);
+        return JSON.stringify({token:tk,displayName:name,isNew:true}); },
+      apiThank:function(token,itemsJson,batchId){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'});
+        var proc=L('proc',{}); if(batchId&&proc[batchId]!=null) return JSON.stringify({ok:true,personalTotal:proc[batchId],dup:true});
+        var items; try{items=JSON.parse(itemsJson);}catch(e){items=[];}
+        var profs=L('profs',{}), me=null, key=null; for(var k in profs){ if(profs[k].id===pid){me=profs[k];key=k;} }
+        if(!me) return JSON.stringify({error:'signin'});
+        var tot=0,i; for(i=0;i<items.length;i++){ tot+=Math.max(0,Math.min(500,parseInt(items[i].n,10)||0)); }
+        if(tot<=0) return JSON.stringify({error:'nothing'});
+        me.total+=tot; profs[key]=me; S('profs',profs); var st=L('stat',{t:0,p:0,a:0}); st.t+=tot; S('stat',st);
+        for(i=0;i<items.length;i++){ if(items[i].n>0) feedPush(me.name,items[i].label,'thank',items[i].n); }
+        if(batchId){ proc[batchId]=me.total; S('proc',proc); }
+        return JSON.stringify({ok:true,personalTotal:me.total}); },
+      apiAddTrust:function(token,text){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]); var id='t'+new Date().getTime(); tr.push({id:id,pid:pid,text:String(text||'').slice(0,280),committed:new Date().getTime(),answered:false,answeredOn:0,shareType:'none'}); S('trust',tr); return JSON.stringify({ok:true,trustId:id}); },
+      apiAnswerTrust:function(token,trustId,shareType,abridged){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]); for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid&&!tr[i].answered){ tr[i].answered=true; tr[i].answeredOn=new Date().getTime(); tr[i].shareType=(shareType==='share')?'share':'none'; S('trust',tr); var st=L('stat',{t:0,p:0,a:0}); st.a++; S('stat',st); if(shareType==='share') feedPush('The Lord has done it', String(abridged||'A trust was answered').slice(0,140),'testimony',1); } } return JSON.stringify({ok:true}); },
+      apiRemoveTrust:function(token,trustId){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]),keep=[]; for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid){ if(tr[i].answered){ var st=L('stat',{t:0,p:0,a:0}); st.a=Math.max(0,st.a-1); S('stat',st); } } else keep.push(tr[i]); } S('trust',keep); return JSON.stringify({ok:true}); },
+      apiMovement:function(){ return snap(); },
+      apiState:function(token){ var pid=resolve(token); var personal={displayName:'',total:0,trust:[]}; if(!pid){ personal.signedOut=true; return JSON.stringify({personal:personal,movement:JSON.parse(snap())}); }
+        var profs=L('profs',{}), me=null; for(var k in profs){ if(profs[k].id===pid) me=profs[k]; } if(!me){ personal.signedOut=true; return JSON.stringify({personal:personal,movement:JSON.parse(snap())}); }
+        personal.displayName=me.name; personal.total=me.total; var tr=L('trust',[]); for(var i=0;i<tr.length;i++){ if(tr[i].pid===pid) personal.trust.push({id:tr[i].id,text:tr[i].text,committed:tr[i].committed,answered:tr[i].answered,answeredOn:tr[i].answeredOn,shared:tr[i].shareType==='share'}); }
+        return JSON.stringify({personal:personal,movement:JSON.parse(snap())}); }
+    };
+  })();
+
+  // ---------------- state ----------------
+  var token=null, displayName='';
+  var PRESETS=[
+    {label:"Thank You Jesus",        hear:["thank you jesus","thankyou jesus"]},
+    {label:"Thank You Lord",         hear:["thank you lord","thankyou lord"]},
+    {label:"Thank You Father",       hear:["thank you father","thankyou father"]},
+    {label:"Jesus, I thank You",     hear:["jesus i thank you","jesus i think you"]},
+    {label:"Holy Spirit, I thank You",hear:["holy spirit i thank you","holy spirit i think you"]}
+  ];
+  var custom=load('tm_custom',[]);              // [{label,hear}]
+  var tallies={};                                // label -> device tally (visual)
+  var queue={};                                  // label -> unsent taps (not yet in a batch)
+  var pending=null;                              // {batchId, items, count} in flight / awaiting ack
+  var confirmedTotal=0;                          // server's last personalTotal
+  var trustList=[];
+  var pendingAnswerId=null;
+  var pollTimer=null, flushTimer=null, curTab='move';
+
+  function load(k,d){ try{ var v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } }
+  function save(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+  function keyify(s){ return s.toLowerCase().replace(/[^a-z\s]/g," ").replace(/\s+/g," ").trim(); }
+  function cssId(s){ return s.replace(/[^a-z0-9]/gi,'_'); }
+
+  var toastEl=document.getElementById('toast'), toastT=null;
+  function toast(m){ toastEl.textContent=m; toastEl.classList.add('show'); if(toastT)clearTimeout(toastT); toastT=setTimeout(function(){toastEl.classList.remove('show');},2800); }
+
+  // ---------------- join / session ----------------
+  window.doJoin=function(){
+    var name=(document.getElementById('jName').value||'').trim(), pin=(document.getElementById('jPin').value||'').trim();
+    var err=document.getElementById('joinErr'); err.textContent='';
+    if(!name){ err.textContent='Please enter your name.'; return; }
+    if(!/^[0-9]{4}$/.test(pin)){ err.textContent='Please choose a 4-digit PIN (numbers only).'; return; }
+    err.textContent='Joining…';
+    call('apiJoin',[name,pin], function(raw){
+      var d=parse(raw); if(!d||d.error){ err.textContent=(d&&d.error)||'Could not join. Try again.'; return; }
+      token=d.token; displayName=d.displayName; save('tm_token',token); save('tm_name',displayName); err.textContent='';
+      enterApp(); if(d.isNew) toast('Welcome to the movement, '+displayName+'! 🙌');
+    }, function(){ err.textContent='Network hiccup — please try again.'; });
+  };
+  window.signOut=function(){ if(!confirm('Sign out on this device? Your data stays safe in the movement.')) return; flushNow(); localStorage.removeItem('tm_token'); localStorage.removeItem('tm_name'); location.reload(); };
+  window.toggleForgot=function(){ var n=document.getElementById('forgotNote'); if(n) n.classList.toggle('hidden'); };
+
+  function enterApp(){
+    document.getElementById('join').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('whoRow').classList.remove('hidden');
+    document.getElementById('whoName').textContent=displayName;
+    renderPhrases(); loadState();
+    if(flushTimer) clearInterval(flushTimer); flushTimer=setInterval(flushThanks,15000);
+    startPolling();
+  }
+  window.showTab=function(which){
+    curTab=which;
+    var map={move:'panMove',thank:'panThank',trust:'panTrust'}, tmap={move:'tabMove',thank:'tabThank',trust:'tabTrust'};
+    for(var k in map){ document.getElementById(map[k]).classList.toggle('active',k===which); document.getElementById(tmap[k]).classList.toggle('active',k===which); }
+    if(which!=='thank') stopListen();
+    if(which==='move'){ startPolling(); pollNow(); } else { stopPolling(); }
+  };
+
+  // ---------------- thank counter (optimistic; batched idempotent flush) ----------------
+  function allPhrases(){ return PRESETS.concat(custom); }
+  function myTotal(){ var t=confirmedTotal, l; for(l in queue) t+=queue[l]; if(pending) t+=pending.count; return t; }
+  function paintTotal(){ document.getElementById('myTotal').textContent=myTotal(); }
+  function renderPhrases(){
+    var host=document.getElementById('phraseList'); host.innerHTML='';
+    allPhrases().forEach(function(p){
+      if(tallies[p.label]==null) tallies[p.label]=0;
+      var b=document.createElement('div'); b.className='phrase';   // voice-only: a live display row, not a tap button
+      b.innerHTML='<span class="txt">'+esc(p.label)+'</span><span class="tally" id="ty_'+cssId(p.label)+'">'+tallies[p.label]+'</span>';
+      host.appendChild(b);
+    });
+  }
+  function flash(b){ if(b){ b.classList.add('pulse'); setTimeout(function(){b.classList.remove('pulse');},200); } }
+  function addThank(label){
+    tallies[label]=(tallies[label]||0)+1; queue[label]=(queue[label]||0)+1;
+    var t=document.getElementById('ty_'+cssId(label)); if(t) t.textContent=tallies[label];
+    paintTotal();
+  }
+  window.addPhrase=function(){
+    var inp=document.getElementById('newPhrase'); var v=(inp.value||'').trim(); if(!v) return;
+    var exists=allPhrases().some(function(p){return p.label===v;}); if(exists){ toast('Already on your list'); inp.value=''; return; }
+    custom.push({label:v, hear:[keyify(v)]}); save('tm_custom',custom); inp.value=''; renderPhrases(); toast('Added “'+v+'”');
+  };
+  function queueToItems(q){ var items=[],l; for(l in q){ if(q[l]>0) items.push({label:l,n:q[l]}); } return items; }
+  function flushThanks(){
+    if(pending){ sendBatch(); return; }                 // retry the same batch (same batchId)
+    var items=queueToItems(queue); if(!items.length) return;
+    var count=0; for(var i=0;i<items.length;i++) count+=items[i].n;
+    pending={ batchId:uid(), items:items, count:count }; queue={};
+    sendBatch();
+  }
+  function sendBatch(){
+    if(!pending) return; var p=pending;
+    call('apiThank',[token, JSON.stringify(p.items), p.batchId], function(raw){
+      var d=parse(raw);
+      if(!d || d.error){
+        if(d && d.error==='signin'){ pending=null; return handleSignedOut(); }
+        return;                                          // keep pending; retry next tick
+      }
+      if(pending===p){ if(d.personalTotal!=null) confirmedTotal=d.personalTotal; pending=null; paintTotal(); }
+    }, function(){ /* network fail: keep pending, retry next tick */ });
+  }
+  function flushNow(){ flushThanks(); }
+
+  // ---------------- voice: Listen & count ----------------
+  var recog=null, listening=false, restartOK=false, seen={}, lastFinalSig='', lastFinalAt=0, heardTimer=null, wakeLock=null;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  // Apps Script serves this app inside Google's sandbox iframe, whose Permissions-Policy does NOT
+  // grant 'microphone' — so voice can never work there, no matter what the user allows. Detect it
+  // so we give an honest message instead of a futile "allow the mic" prompt. Top-level (a GitHub
+  // Pages build) has no such block, and voice works normally.
+  var inFrame = (function(){ try{ return window.self !== window.top; }catch(e){ return true; } })();
+  function normalize(s){ return (" "+String(s).toLowerCase()+" ").replace(/[^a-z\s]/g," ").replace(/\s+/g," "); }
+  function dropLastToken(padded){ var t=padded.replace(/^\s+|\s+$/g,""); var i=t.lastIndexOf(" "); return " "+(i>-1?t.slice(0,i):"")+" "; }
+  function matchAt(words,pos,kw){ if(pos+kw.length>words.length) return false; for(var i=0;i<kw.length;i++){ if(words[pos+i]!==kw[i]) return false; } return true; }
+  function scanCounts(text){                             // non-overlapping longest-match so "...thank you [jesus]..." can't double-count
+    var s=text.replace(/^\s+|\s+$/g,""), words=s?s.split(" "):[], out={}, list=allPhrases(), pos=0;
+    while(pos<words.length){ var bestLabel=null,bestLen=0;
+      for(var pi=0;pi<list.length;pi++){ var hear=list[pi].hear||[]; for(var hi=0;hi<hear.length;hi++){ var kw=hear[hi].split(" "); if(kw.length>bestLen && matchAt(words,pos,kw)){ bestLen=kw.length; bestLabel=list[pi].label; } } }
+      if(bestLabel){ out[bestLabel]=(out[bestLabel]||0)+1; pos+=bestLen; } else pos++;
+    }
+    return out;
+  }
+  function showHeard(txt){ var el=document.getElementById('heard'); if(!el) return; if(!listening){ el.textContent=''; el.classList.remove('show'); return; } txt=(txt||'').replace(/\s+/g,' ').trim(); var w=txt.split(' '); if(w.length>7) txt='… '+w.slice(-7).join(' '); el.textContent=txt?('“'+txt+'”'):'…listening'; el.classList.add('show'); if(heardTimer)clearTimeout(heardTimer); heardTimer=setTimeout(function(){ if(el&&listening) el.textContent='…listening'; },1400); }
+  function acquireWake(){ try{ if('wakeLock' in navigator && document.visibilityState==='visible'){ navigator.wakeLock.request('screen').then(function(w){ wakeLock=w; }).catch(function(){}); } }catch(e){} }
+  function releaseWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
+  window.toggleListen=function(){
+    if(inFrame){ toast("Voice can’t run inside this Google window yet 🙏"); return; }   // sandbox blocks the mic
+    if(!SR){ toast("Voice needs Chrome or Safari with mic access."); return; }
+    if(listening) stopListen(); else startListen();
+  };
+  function startListen(){
+    try{
+      seen={}; lastFinalSig=''; lastFinalAt=0;
+      recog=new SR(); recog.continuous=true; recog.interimResults=true; recog.maxAlternatives=1; recog.lang='en-US';
+      recog.onresult=function(e){
+        var start=(typeof e.resultIndex==='number')?e.resultIndex:0;
+        for(var i=start;i<e.results.length;i++){
+          var res=e.results[i], isF=!!res.isFinal, raw=(res[0]&&res[0].transcript)||''; showHeard(raw);
+          var norm=normalize(raw);
+          if(isF){ var now=new Date().getTime(); if(norm===lastFinalSig && (now-lastFinalAt)<900) continue; lastFinalSig=norm; lastFinalAt=now; }
+          var text=isF?norm:dropLastToken(norm);
+          if(!seen[i]) seen[i]={};
+          var cnt=scanCounts(text);
+          allPhrases().forEach(function(p){ var occ=cnt[p.label]||0, had=seen[i][p.label]||0; if(occ>had){ seen[i][p.label]=occ; for(var k=0;k<(occ-had);k++){ addThank(p.label); } var b=document.getElementById('ty_'+cssId(p.label)); if(b){ var card=b.closest('.phrase'); flash(card); } } });
+        }
+      };
+      recog.onend=function(){ if(restartOK){ seen={}; try{recog.start();}catch(e){ setTimeout(function(){ if(restartOK){try{recog.start();}catch(x){}} },400); } } };
+      recog.onerror=function(ev){ if(ev.error==='not-allowed'||ev.error==='service-not-allowed'){ stopListen(); toast('Please allow the microphone, then tap Listen again.'); } };
+      restartOK=true; recog.start(); listening=true; acquireWake();
+      var btn=document.getElementById('listenBtn'); btn.classList.add('on'); btn.textContent='● Listening… tap to stop';
+      showHeard('');
+    }catch(e){ toast("Couldn’t start listening — please try again."); }
+  }
+  function stopListen(){ listening=false; restartOK=false; try{ if(recog){ recog.onend=null; recog.stop(); } }catch(e){} releaseWake(); var btn=document.getElementById('listenBtn'); if(btn){ btn.classList.remove('on'); btn.textContent='🎙 Listen & count'; } showHeard(''); }
+  if(!SR){ var lb=document.getElementById('listenBtn'); if(lb){ lb.style.opacity='.6'; } }
+
+  // ---------------- movement live (visibility-aware, backed off) ----------------
+  function startPolling(){ stopPolling(); if(curTab==='move' && document.visibilityState==='visible'){ setLive(true); pollTimer=setInterval(pollNow,15000); } }
+  function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } setLive(false); }
+  function setLive(on){ var d=document.getElementById('liveDot'), l=document.getElementById('liveLabel'); if(d) d.classList.toggle('off',!on); if(l) l.textContent = on ? 'Live • the family right now' : 'Paused — open this tab to go live'; }
+  var lastFeedKey='';
+  function pollNow(){
+    call('apiMovement',[], function(raw){ var m=parse(raw); if(!m||m.error) return; setNum('sThanks',m.totalThanks); setNum('sPeople',m.people); setNum('sAnswered',m.answered); renderFeed(m.feed||[]); });
+  }
+  function setNum(id,v){ var el=document.getElementById(id); if(el) el.textContent=fmt(v); }
+  function fmt(n){ try{ return (n||0).toLocaleString(); }catch(e){ return String(n||0); } }
+  function renderFeed(feed){
+    var key=feed.length?(feed[0].ts+'|'+feed[0].name+'|'+feed[0].label+'|'+feed.length):'empty';
+    if(key===lastFeedKey) return; lastFeedKey=key;
+    var host=document.getElementById('feed');
+    if(!feed.length){ host.innerHTML='<li class="empty">Be the first to give thanks — tap the Thank tab 🙏</li>'; return; }
+    var html='';
+    for(var i=0;i<feed.length;i++){ var e=feed[i];
+      if(e.kind==='testimony'){ html+='<li class="fe testimony"><span class="ic">🎉</span><div class="body"><div class="nm">The Lord has done it</div><div class="lb">'+esc(e.label||'A trust was answered')+'</div></div></li>'; }
+      else if(e.kind==='join'){ html+='<li class="fe join"><span class="ic">🌿</span><div class="body"><div class="nm">'+esc(e.name)+'</div><div class="lb">joined the movement</div></div></li>'; }
+      else { html+='<li class="fe"><span class="ic">🙏</span><div class="body"><div class="nm">'+esc(e.name)+'</div><div class="lb">'+esc(e.label||'gave thanks')+'</div></div>'+(e.n>1?('<span class="x">×'+e.n+'</span>'):'')+'</li>'; }
+    }
+    host.innerHTML=html;
+  }
+
+  // ---------------- state (personal + trust) ----------------
+  function handleSignedOut(){ toast('Please sign in again.'); localStorage.removeItem('tm_token'); location.reload(); }
+  function loadState(){
+    call('apiState',[token], function(raw){
+      if(firstLoad){ firstLoad=false; hideBootLoader(); }    // first real data in — reveal the app
+      var d=parse(raw); if(!d||d.error){ return; }         // transient: keep showing what we have, don't blank
+      if(d.personal){
+        if(d.personal.signedOut){ return handleSignedOut(); }
+        confirmedTotal=d.personal.total||0; paintTotal();
+        trustList=(d.personal.trust||[]).sort(function(a,b){ return (b.committed||0)-(a.committed||0); });
+        renderTrust();
+      }
+      if(d.movement){ setNum('sThanks',d.movement.totalThanks); setNum('sPeople',d.movement.people); setNum('sAnswered',d.movement.answered); renderFeed(d.movement.feed||[]); }
+    }, function(){
+      if(firstLoad){ firstLoad=false; hideBootLoader(); }    // couldn't reach it on first try: still show the shell so it isn't a blank screen; polling retries
+    });
+  }
+  function niceDate(ms){ if(!ms) return ''; var d=new Date(ms); var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return m[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }
+  window.addTrust=function(){
+    var ta=document.getElementById('trustInput'); var v=(ta.value||'').trim(); if(!v){ ta.focus(); return; }
+    var btn=ta.parentNode.querySelector('.add-btn'); if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
+    call('apiAddTrust',[token,v], function(raw){
+      if(btn){ btn.disabled=false; btn.innerHTML='Commit it &amp; trust Him'; }
+      var d=parse(raw); if(!d||d.error){ if(d&&d.error==='signin') return handleSignedOut(); toast("Couldn't save — check your connection and try again."); return; }
+      ta.value=''; trustList.unshift({id:d.trustId,text:v,committed:new Date().getTime(),answered:false,shared:false}); renderTrust(); toast('Committed in faith — now thank Him for it. Mark 11:24');
+    }, function(){ if(btn){ btn.disabled=false; btn.innerHTML='Commit it &amp; trust Him'; } toast("Couldn't save — your prayer is still here; try again."); });
+  };
+  function renderTrust(){
+    var open=document.getElementById('openList'), done=document.getElementById('doneList'); open.innerHTML=''; done.innerHTML=''; var anyO=false,anyD=false;
+    trustList.forEach(function(it){
+      var div=document.createElement('div'); div.className='item'+(it.answered?' done':'');
+      var meta=it.answered?('Answered '+niceDate(it.answeredOn)+(it.shared?' • shared with the family':'')):('Committed '+niceDate(it.committed));
+      var acts=it.answered?'<button class="mini del" onclick="rmTrust(\''+it.id+'\')">Remove</button>':'<button class="mini recv" onclick="answerTrust(\''+it.id+'\')">He answered! 🙌</button><button class="mini del" onclick="rmTrust(\''+it.id+'\')">Remove</button>';
+      div.innerHTML='<div class="body2">'+esc(it.text)+'</div><div class="meta">'+meta+'</div><div class="acts">'+acts+'</div>';
+      if(it.answered){ done.appendChild(div); anyD=true; } else { open.appendChild(div); anyO=true; }
+    });
+    if(!anyO) open.innerHTML='<div class="empty">Write what you trust Him for. He is faithful that promised.</div>';
+    if(!anyD) done.innerHTML='<div class="empty">Every answered prayer will land here as a testimony.</div>';
+  }
+  window.answerTrust=function(id){ pendingAnswerId=id; document.getElementById('shareText').value=''; document.getElementById('shareScrim').classList.add('show'); };
+  window.closeShare=function(doShare){
+    var id=pendingAnswerId; pendingAnswerId=null; document.getElementById('shareScrim').classList.remove('show'); if(!id) return;
+    var abridged=doShare?((document.getElementById('shareText').value||'').trim()):'';
+    call('apiAnswerTrust',[token,id, doShare?'share':'none', abridged], function(raw){
+      var d=parse(raw); if(!d||d.error){ if(d&&d.error==='signin') return handleSignedOut(); toast("Couldn't record it — please try again."); return; }
+      for(var i=0;i<trustList.length;i++){ if(trustList[i].id===id){ trustList[i].answered=true; trustList[i].answeredOn=new Date().getTime(); trustList[i].shared=!!doShare; } }
+      renderTrust(); if(curTab==='move') pollNow(); toast(doShare?'Shared — the family rejoices with you! 🎉':'Recorded. Blessed be His name! 🙌');
+    }, function(){ toast("Couldn't record it — please try again."); });
+  };
+  window.rmTrust=function(id){ if(!confirm('Remove this entry?')) return; call('apiRemoveTrust',[token,id], function(raw){ var d=parse(raw); if(!d||d.error){ toast("Couldn't remove it — please try again."); return; } trustList=trustList.filter(function(x){return x.id!==id;}); renderTrust(); }, function(){ toast("Couldn't remove it — please try again."); }); };
+
+  // ---------------- lifecycle ----------------
+  document.addEventListener('visibilitychange',function(){ if(document.hidden){ flushThanks(); stopPolling(); if(listening) releaseWake(); } else { if(token){ startPolling(); if(curTab==='move') pollNow(); if(listening) acquireWake(); } } });
+  window.addEventListener('pagehide', flushThanks);
+  window.addEventListener('beforeunload', flushThanks);
+
+  // ---------------- boot ----------------
+  // Deferred to window 'load' so the Apps Script sandbox bridge (google.script.run) is fully
+  // wired before the first server call — firing it too early was what left the page blank until
+  // a manual refresh. The splash stays up until the first data arrives (or the failsafe fires).
+  function boot(){
+    bootTimer=setTimeout(hideBootLoader, 15000);          // failsafe: never leave the splash up forever
+    token=load('tm_token',null); displayName=load('tm_name','');
+    if(token){ enterApp(); }                              // loadState() hides the splash when the movement loads
+    else { hideBootLoader(); document.getElementById('jName').focus(); }   // no session: the join card is ready now
+  }
+  if(document.readyState==='complete'){ boot(); }
+  else { window.addEventListener('load', boot); }
+})();
+</script>
+</body>
+</html>

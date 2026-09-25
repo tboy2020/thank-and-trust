@@ -36,8 +36,8 @@
   .privacy .lk{font-size:18px;flex:0 0 auto;}
   .privacy .pt{font-size:12.5px;color:#2e5f52;line-height:1.5;}
   .privacy .pt b{color:#1f4a3f;}
-  .tabs{display:flex;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:14px;padding:5px;margin:14px 0 14px;}
-  .tab{flex:1;font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:13px;color:#cdd8e6;background:transparent;border:0;border-radius:10px;padding:11px 6px;cursor:pointer;transition:.16s;}
+  .tabs{display:flex;gap:4px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:14px;padding:4px;margin:14px 0 14px;}
+  .tab{flex:1;font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-size:11.5px;color:#cdd8e6;background:transparent;border:0;border-radius:10px;padding:11px 3px;cursor:pointer;transition:.16s;white-space:nowrap;}
   .tab.active{background:linear-gradient(180deg,var(--gold-lite),var(--gold));color:var(--navy);box-shadow:0 6px 16px rgba(201,162,39,.25);}
   .panel{display:none;animation:fade .3s ease;}
   .panel.active{display:block;}
@@ -174,6 +174,24 @@
   #panNames .row{display:flex;gap:10px;margin-top:16px;}
   #panNames .btn{flex:1;font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:13px;border-radius:12px;padding:12px;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.08);color:#e9e3d1;transition:.16s;}
   #panNames .btn:active{transform:scale(.98);}
+  /* ===== personal History (on-device) ===== */
+  #panHistory .hist-you{background:linear-gradient(160deg,var(--navy-2),#0d2947);border:1px solid var(--line);border-radius:20px;padding:16px 18px 18px;box-shadow:0 12px 28px rgba(0,0,0,.28);}
+  #panHistory .hy-eye{font-family:'Saira Condensed',sans-serif;letter-spacing:.2em;text-transform:uppercase;font-size:11px;color:var(--gold-lite);font-weight:600;text-align:center;}
+  #panHistory .hy-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+  #panHistory .hy-stat{text-align:center;}
+  #panHistory .hy-n{font-family:'Saira Condensed',sans-serif;font-weight:700;color:#fff;font-size:34px;line-height:1;}
+  #panHistory .hy-of{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:#9fb0c2;margin-left:3px;}
+  #panHistory .hy-k{font-family:'Saira Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:11px;color:var(--gold-lite);font-weight:600;margin-top:5px;}
+  #panHistory .hist-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  #panHistory .hcell{background:linear-gradient(180deg,var(--paper),#fff);border:1px solid var(--line);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.2);}
+  #panHistory .hcell.wide{grid-column:1/-1;}
+  #panHistory .hn{font-family:'Saira Condensed',sans-serif;font-weight:700;color:var(--navy);font-size:26px;line-height:1;}
+  #panHistory .hk{font-family:'Saira Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:11px;color:var(--verd);font-weight:600;margin-top:5px;}
+  #panHistory .hnote{font-family:'Fraunces',serif;font-style:italic;font-size:11px;color:#8a97a6;text-transform:none;letter-spacing:0;font-weight:400;}
+  #panHistory .hdays .hrow{display:flex;justify-content:space-between;align-items:center;padding:11px 6px;border-bottom:1px solid var(--line);font-size:14px;}
+  #panHistory .hdays .hd{font-family:'Fraunces',serif;font-style:italic;color:#cdd8e6;}
+  #panHistory .hdays .hc{font-family:'Saira Condensed',sans-serif;font-weight:700;color:var(--gold-lite);letter-spacing:.05em;}
+  #panHistory .section-h{color:var(--gold-lite);}
 </style>
 </head>
 <body>
@@ -216,6 +234,7 @@
       <button class="tab" id="tabThank" onclick="showTab('thank')">Thank</button>
       <button class="tab" id="tabTrust" onclick="showTab('trust')">Trust</button>
       <button class="tab" id="tabNames" onclick="showTab('names')">Names</button>
+      <button class="tab" id="tabHistory" onclick="showTab('history')">History</button>
     </div>
 
     <div class="panel active" id="panMove">
@@ -266,6 +285,7 @@
     </div>
 
     <div class="panel" id="panNames"></div>
+    <div class="panel" id="panHistory"></div>
   </section>
 
   <footer><div class="g">Glory to God alone</div><div class="amhg">AMHG</div></footer>
@@ -437,10 +457,11 @@
   }
   window.showTab=function(which){
     curTab=which;
-    var map={move:'panMove',thank:'panThank',trust:'panTrust',names:'panNames'}, tmap={move:'tabMove',thank:'tabThank',trust:'tabTrust',names:'tabNames'};
+    var map={move:'panMove',thank:'panThank',trust:'panTrust',names:'panNames',history:'panHistory'}, tmap={move:'tabMove',thank:'tabThank',trust:'tabTrust',names:'tabNames',history:'tabHistory'};
     for(var k in map){ document.getElementById(map[k]).classList.toggle('active',k===which); document.getElementById(tmap[k]).classList.toggle('active',k===which); }
     if(which!=='thank') stopListen();
     if(which==='names'){ if(window.__namesShow) window.__namesShow(); } else { if(window.__namesHide) window.__namesHide(); }
+    if(which==='history') renderHistory();
     if(which==='move'){ startPolling(); pollNow(); } else { stopPolling(); }
   };
   // ---- bridges the ported Names journey module calls into ----
@@ -468,8 +489,44 @@
   function addThank(label){
     tallies[label]=(tallies[label]||0)+1; queue[label]=(queue[label]||0)+1;
     var t=document.getElementById('ty_'+cssId(label)); if(t) t.textContent=tallies[label];
-    paintTotal();
+    paintTotal(); logThank(1);
   }
+  // ---- personal by-date log + History (on-device; names count via the ported journey) ----
+  var dlog = load('tm_dlog', {});
+  function pad2(x){ return (x<10?'0':'')+x; }
+  function todayKey(){ var d=new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+  function daysAgoKey(nb){ var d=new Date(); d.setDate(d.getDate()-nb); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+  function dateFromKey(k){ var a=String(k).split('-'); return new Date(+a[0], (+a[1])-1, +a[2]).getTime(); }
+  function logThank(n){ n=n||1; var k=todayKey(); dlog[k]=(dlog[k]||0)+n; save('tm_dlog',dlog); }
+  function namesCalledCount(){ try{ var c=JSON.parse(localStorage.getItem('v2_called')||'{}'), n=0, k; for(k in c){ if(c.hasOwnProperty(k)) n++; } return n; }catch(e){ return 0; } }
+  function sumLog(pred){ var t=0,k; for(k in dlog){ if(dlog.hasOwnProperty(k) && pred(k)) t+=dlog[k]; } return t; }
+  window.renderHistory=function(){
+    var host=document.getElementById('panHistory'); if(!host) return;
+    var tk=todayKey(), ym=tk.slice(0,7), yr=tk.slice(0,4), wk={}, i; for(i=0;i<7;i++){ wk[daysAgoKey(i)]=1; }
+    var today=dlog[tk]||0;
+    var week=sumLog(function(k){ return wk[k]===1; });
+    var month=sumLog(function(k){ return k.slice(0,7)===ym; });
+    var year=sumLog(function(k){ return k.slice(0,4)===yr; });
+    var all=sumLog(function(){ return true; });
+    var thanks=myTotal(), names=namesCalledCount();
+    var keys=[],kk; for(kk in dlog){ if(dlog.hasOwnProperty(kk)&&dlog[kk]>0) keys.push(kk); } keys.sort(); keys.reverse();
+    var rows='',j; for(j=0;j<Math.min(14,keys.length);j++){ rows+='<div class="hrow"><span class="hd">'+niceDate(dateFromKey(keys[j]))+'</span><span class="hc">'+fmt(dlog[keys[j]])+'</span></div>'; }
+    if(!rows) rows='<div class="empty">Your first thanksgiving will appear here, dated.</div>';
+    host.innerHTML=''+
+      '<div class="hist-you"><div class="hy-eye">Your walk with Him</div><div class="hy-grid">'+
+        '<div class="hy-stat"><div class="hy-n">'+fmt(thanks)+'</div><div class="hy-k">Thanksgivings</div></div>'+
+        '<div class="hy-stat"><div class="hy-n">'+fmt(names)+'<span class="hy-of">/ 1,000</span></div><div class="hy-k">Names called</div></div>'+
+      '</div></div>'+
+      '<div class="section-h">By date <span class="hnote">&bull; on this device</span></div>'+
+      '<div class="hist-grid">'+
+        '<div class="hcell"><div class="hn">'+fmt(today)+'</div><div class="hk">Today</div></div>'+
+        '<div class="hcell"><div class="hn">'+fmt(week)+'</div><div class="hk">This week</div></div>'+
+        '<div class="hcell"><div class="hn">'+fmt(month)+'</div><div class="hk">This month</div></div>'+
+        '<div class="hcell"><div class="hn">'+fmt(year)+'</div><div class="hk">This year</div></div>'+
+        '<div class="hcell wide"><div class="hn">'+fmt(all)+'</div><div class="hk">All time &bull; this device</div></div>'+
+      '</div>'+
+      '<div class="section-h">Recent days</div><div class="hdays">'+rows+'</div>';
+  };
   window.addPhrase=function(){
     var inp=document.getElementById('newPhrase'); var v=(inp.value||'').trim(); if(!v) return;
     var exists=allPhrases().some(function(p){return p.label===v;}); if(exists){ toast('Already on your list'); inp.value=''; return; }

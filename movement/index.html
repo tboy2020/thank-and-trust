@@ -42,6 +42,16 @@
   .panel{display:none;animation:fade .3s ease;}
   .panel.active{display:block;}
   @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  /* shared 1,000-Names journey — the family honours God's names together */
+  .journey{background:linear-gradient(160deg,var(--navy-2),#0d2947);border:1px solid var(--line);border-radius:20px;padding:18px 18px 16px;margin-bottom:12px;box-shadow:0 12px 28px rgba(0,0,0,.28);}
+  .jrn-eye{font-family:'Saira Condensed',sans-serif;letter-spacing:.2em;text-transform:uppercase;font-size:11px;color:var(--gold-lite);font-weight:600;text-align:center;}
+  .jrn-num{text-align:center;margin:8px 0 12px;font-family:'Saira Condensed',sans-serif;font-weight:700;color:#fff;font-size:40px;line-height:1;}
+  .jrn-num .jrn-of{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:16px;color:#9fb0c2;margin-left:8px;text-transform:none;letter-spacing:0;}
+  .jrn-bar{height:12px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;border:1px solid rgba(255,255,255,.08);}
+  .jrn-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--gold-lite),var(--gold));box-shadow:0 0 12px rgba(201,162,39,.5);transition:width .8s cubic-bezier(.2,.8,.2,1);}
+  .jrn-sub{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:#cdd8e6;text-align:center;margin-top:11px;line-height:1.5;}
+  .invite{width:100%;margin-top:18px;font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px;border:0;border-radius:16px;padding:14px;cursor:pointer;color:#fff;background:linear-gradient(180deg,#2AB559,#1E9E48);box-shadow:0 8px 20px rgba(30,158,72,.32);}
+  .invite:active{transform:scale(.99);}
   .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
   .stat{background:linear-gradient(180deg,var(--paper),#fff);border:1px solid var(--line);border-radius:18px;padding:16px 8px;text-align:center;box-shadow:0 10px 24px rgba(0,0,0,.22);}
   .stat .n{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:34px;line-height:1;color:var(--navy);}
@@ -175,6 +185,12 @@
     </div>
 
     <div class="panel active" id="panMove">
+      <div class="journey">
+        <div class="jrn-eye">God’s 1,000 Names &bull; called together</div>
+        <div class="jrn-num"><span id="jrnCount">0</span><span class="jrn-of">of 1,000</span></div>
+        <div class="jrn-bar"><div class="jrn-fill" id="jrnFill"></div></div>
+        <div class="jrn-sub" id="jrnSub">Every thanksgiving calls one of His names. Let’s honour all 1,000 together. 🙏</div>
+      </div>
       <div class="stat-grid">
         <div class="stat"><div class="n" id="sThanks">0</div><div class="k">Thanksgivings</div></div>
         <div class="stat"><div class="n" id="sPeople">0</div><div class="k">In the family</div></div>
@@ -182,6 +198,7 @@
       </div>
       <div class="section-h"><span class="live" id="liveDot"></span> <span id="liveLabel">Live &bull; the family right now</span></div>
       <ul class="feed" id="feed"><li class="empty">Loading the movement…</li></ul>
+      <button class="invite" id="inviteBtn" onclick="inviteFamily()">💬 Invite the family on WhatsApp</button>
     </div>
 
     <div class="panel" id="panThank">
@@ -241,6 +258,7 @@
   // same movement backend with a simple cross-origin POST to the Apps Script /exec (doPost). On
   // localhost we stay on the offline MOCK unless ?live=1 is passed, so dev testing never touches live data.
   var EXEC_URL = 'https://script.google.com/macros/s/AKfycbyD5lDwnCPsIO1TEB4fkivFPBLcCy2F4cW7W3e4Okv7NjOBEtASF8Fnl_Bu_gcFN6h9/exec';
+  var SHARE_URL = 'https://tboy2020.github.io/thank-and-trust/movement/';   // the link the family opens
   var LOCAL = /^(localhost|127\.|0\.0\.0\.0|\[)/.test(location.hostname) || location.protocol==='file:';
   var USE_FETCH = !ONLINE && !!EXEC_URL && (!LOCAL || /[?&]live=1/.test(location.search));
 
@@ -493,10 +511,29 @@
   function setLive(on){ var d=document.getElementById('liveDot'), l=document.getElementById('liveLabel'); if(d) d.classList.toggle('off',!on); if(l) l.textContent = on ? 'Live • the family right now' : 'Paused — open this tab to go live'; }
   var lastFeedKey='';
   function pollNow(){
-    call('apiMovement',[], function(raw){ var m=parse(raw); if(!m||m.error) return; setNum('sThanks',m.totalThanks); setNum('sPeople',m.people); setNum('sAnswered',m.answered); renderFeed(m.feed||[]); });
+    call('apiMovement',[], function(raw){ var m=parse(raw); if(!m||m.error) return; setNum('sThanks',m.totalThanks); setNum('sPeople',m.people); setNum('sAnswered',m.answered); renderJourney(m.totalThanks); renderFeed(m.feed||[]); });
   }
   function setNum(id,v){ var el=document.getElementById(id); if(el) el.textContent=fmt(v); }
   function fmt(n){ try{ return (n||0).toLocaleString(); }catch(e){ return String(n||0); } }
+  // shared 1,000-Names journey: each family thanksgiving calls one of God's names; fill to 1,000, then loop
+  function renderJourney(total){
+    total=total||0; var TARGET=1000, round, inRound;
+    if(total>0 && total%TARGET===0){ round=total/TARGET; inRound=TARGET; }   // a full round just completed
+    else { round=Math.floor(total/TARGET)+1; inRound=total%TARGET; }
+    var pct = inRound>0 ? Math.max(2, Math.round(inRound/TARGET*100)) : 0;    // a visible sliver once it starts
+    var fill=document.getElementById('jrnFill'); if(fill) fill.style.width=pct+'%';
+    var c=document.getElementById('jrnCount'); if(c) c.textContent=fmt(inRound);
+    var s=document.getElementById('jrnSub'); if(!s) return;
+    if(inRound===TARGET){ s.innerHTML='🎉 All 1,000 of His names, called together — Round '+round+' complete! Begin again in praise.'; }
+    else if(round>1){ s.innerHTML='Round '+round+' &bull; '+fmt(total)+' names called all-time. Every thanksgiving calls one more.'; }
+    else { s.innerHTML='Every thanksgiving calls one of His names. Let’s honour all 1,000 together. 🙏'; }
+  }
+  window.inviteFamily=function(){
+    var msg='🙏 *Thank & Trust — The Movement*\n\n'+
+      'Come and give thanks to God with our family! Say your thanksgivings aloud and watch our praise rise as one — every “Thank You Jesus” is counted and calls one of God’s 1,000 names.\n\n'+
+      'Tap to join us:\n'+SHARE_URL+'\n\nGlory to God alone. 🕊️';
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  };
   function renderFeed(feed){
     var key=feed.length?(feed[0].ts+'|'+feed[0].name+'|'+feed[0].label+'|'+feed.length):'empty';
     if(key===lastFeedKey) return; lastFeedKey=key;
@@ -523,7 +560,7 @@
         trustList=(d.personal.trust||[]).sort(function(a,b){ return (b.committed||0)-(a.committed||0); });
         renderTrust();
       }
-      if(d.movement){ setNum('sThanks',d.movement.totalThanks); setNum('sPeople',d.movement.people); setNum('sAnswered',d.movement.answered); renderFeed(d.movement.feed||[]); }
+      if(d.movement){ setNum('sThanks',d.movement.totalThanks); setNum('sPeople',d.movement.people); setNum('sAnswered',d.movement.answered); renderJourney(d.movement.totalThanks); renderFeed(d.movement.feed||[]); }
     }, function(){
       if(firstLoad){ firstLoad=false; hideBootLoader(); }    // couldn't reach it on first try: still show the shell so it isn't a blank screen; polling retries
     });

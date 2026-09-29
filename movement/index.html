@@ -475,7 +475,7 @@
     if(which==='move'){ startPolling(); pollNow(); } else { stopPolling(); }
   };
   // ---- bridges the ported Names journey module calls into ----
-  var nameQ={}, lastDistinct=0, NAME_IDX=null;
+  var nameQ={}, lastDistinct=0, lastMovementTotal=0, NAME_IDX=null;
   function nameIndexOf(name){ if(NAME_IDX===null){ NAME_IDX={}; try{ var f=0; TT_NAMES_DATA.sessions.forEach(function(s){ s.names.forEach(function(e){ if(NAME_IDX[e.n]==null) NAME_IDX[e.n]=f; f++; }); }); }catch(e){ NAME_IDX={}; } } var v=NAME_IDX[name]; return (v==null)?-1:v; }
   window.__ttOffer = function(n, nm){ var lbl=(nm==null?'':String(nm))||'Thank You Jesus'; var k=Math.max(1,n||1); for(var i=0;i<k;i++) addThank(lbl); if(nm!=null){ var ix=nameIndexOf(String(nm)); if(ix>=0) nameQ[ix]=1; } };  // name → shared feed + total + the family's distinct-names set
   window.__ttToast = function(a,b){ toast(b ? (a+' — '+b) : a); };
@@ -562,7 +562,8 @@
         return;                                          // keep pending; retry next tick
       }
       if(pending===p){ if(d.personalTotal!=null) confirmedTotal=d.personalTotal;
-        if(d.distinctNames!=null){ lastDistinct=d.distinctNames; if(curTab==='move') renderJourney(lastDistinct, confirmedTotal); }
+        if(d.distinctNames!=null){ lastDistinct=d.distinctNames; if(!d.dup && p.count) lastMovementTotal+=p.count;   // my batch adds to the FAMILY total (not my personal one)
+          if(curTab==='move') renderJourney(lastDistinct, lastMovementTotal); }
         pending=null; paintTotal(); }
     }, function(){ /* network fail: keep pending, retry next tick */ });
   }
@@ -627,7 +628,7 @@
   function setLive(on){ var d=document.getElementById('liveDot'), l=document.getElementById('liveLabel'); if(d) d.classList.toggle('off',!on); if(l) l.textContent = on ? 'Live • the family right now' : 'Paused — open this tab to go live'; }
   var lastFeedKey='';
   function pollNow(){
-    call('apiMovement',[], function(raw){ var m=parse(raw); if(!m||m.error) return; setNum('sThanks',m.totalThanks); setNum('sPeople',m.people); setNum('sAnswered',m.answered); renderJourney(m.distinctNames, m.totalThanks); renderFeed(m.feed||[]); });
+    call('apiMovement',[], function(raw){ var m=parse(raw); if(!m||m.error) return; setNum('sThanks',m.totalThanks); setNum('sPeople',m.people); setNum('sAnswered',m.answered); lastMovementTotal=m.totalThanks; renderJourney(m.distinctNames, m.totalThanks); renderFeed(m.feed||[]); });
   }
   function setNum(id,v){ var el=document.getElementById(id); if(el) el.textContent=fmt(v); }
   function fmt(n){ try{ return (n||0).toLocaleString(); }catch(e){ return String(n||0); } }
@@ -676,7 +677,7 @@
         trustList=(d.personal.trust||[]).sort(function(a,b){ return (b.committed||0)-(a.committed||0); });
         renderTrust();
       }
-      if(d.movement){ setNum('sThanks',d.movement.totalThanks); setNum('sPeople',d.movement.people); setNum('sAnswered',d.movement.answered); renderJourney(d.movement.distinctNames, d.movement.totalThanks); renderFeed(d.movement.feed||[]); }
+      if(d.movement){ setNum('sThanks',d.movement.totalThanks); setNum('sPeople',d.movement.people); setNum('sAnswered',d.movement.answered); lastMovementTotal=d.movement.totalThanks; renderJourney(d.movement.distinctNames, d.movement.totalThanks); renderFeed(d.movement.feed||[]); }
     }, function(){
       if(firstLoad){ firstLoad=false; hideBootLoader(); }    // couldn't reach it on first try: still show the shell so it isn't a blank screen; polling retries
     });

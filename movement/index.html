@@ -693,8 +693,17 @@
     if(key===lastFeedKey) return; lastFeedKey=key;
     var host=document.getElementById('feed');
     if(!feed.length){ host.innerHTML='<li class="empty">Be the first to give thanks — tap the Thank tab 🙏</li>'; return; }
+    // group repeated thanksgivings by (name + phrase) into ONE bucket with a running count; joins/testimonies stay individual
+    var map={}, list=[], i, e, k;
+    for(i=0;i<feed.length;i++){ e=feed[i];
+      if(e.kind==='thank'){ k=e.name+'\u0000'+(e.label||'');
+        if(map[k]){ map[k].n+=(e.n||1); if((e.ts||0)>map[k].ts) map[k].ts=e.ts; }
+        else { map[k]={name:e.name,label:e.label,kind:'thank',n:(e.n||1),ts:(e.ts||0)}; list.push(map[k]); }
+      } else { list.push({name:e.name,label:e.label,kind:e.kind,n:(e.n||1),ts:(e.ts||0)}); }
+    }
+    list.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });   // most-recently-active bucket first
     var html='';
-    for(var i=0;i<feed.length;i++){ var e=feed[i];
+    for(i=0;i<list.length;i++){ e=list[i];
       if(e.kind==='testimony'){ html+='<li class="fe testimony"><span class="ic">🎉</span><div class="body"><div class="nm">The Lord has done it</div><div class="lb">'+esc(e.label||'A trust was answered')+'</div></div></li>'; }
       else if(e.kind==='join'){ html+='<li class="fe join"><span class="ic">🌿</span><div class="body"><div class="nm">'+esc(e.name)+'</div><div class="lb">joined the movement</div></div></li>'; }
       else { html+='<li class="fe"><span class="ic">🙏</span><div class="body"><div class="nm">'+esc(e.name)+'</div><div class="lb">'+esc(e.label||'gave thanks')+'</div></div>'+(e.n>1?('<span class="x">×'+e.n+'</span>'):'')+'</li>'; }

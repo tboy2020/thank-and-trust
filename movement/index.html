@@ -424,17 +424,17 @@
         if(!/^[0-9]{4}$/.test(pin)) return JSON.stringify({error:'Please choose a 4-digit PIN.'});
         var profs=L('profs',{}), key=name.toLowerCase(), tk=uid(), sm=sess();
         if(profs[key]){ if(profs[key].pin!==pin) return JSON.stringify({error:'That name and PIN don’t match.'}); sm[tk]=profs[key].id; S('sess',sm); return JSON.stringify({token:tk,displayName:name}); }
-        var id='p'+new Date().getTime(); profs[key]={id:id,pin:pin,name:name,total:0}; S('profs',profs);
+        var id='p'+new Date().getTime(); profs[key]={id:id,pin:pin,name:name,total:0,personal:{goal:0,log:{}}}; S('profs',profs);
         var st=L('stat',{t:0,p:0,a:0}); st.p++; S('stat',st); feedPush(name,'joined the movement','join',1); sm[tk]=id; S('sess',sm);
         return JSON.stringify({token:tk,displayName:name,isNew:true}); },
-      apiThank:function(token,itemsJson,batchId,namesJson){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'});
+      apiThank:function(token,itemsJson,batchId,namesJson,dayKey){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'});
         var proc=L('proc',{}); if(batchId&&proc[batchId]!=null) return JSON.stringify({ok:true,personalTotal:proc[batchId],distinctNames:namesetCount(),dup:true});
         var items; try{items=JSON.parse(itemsJson);}catch(e){items=[];}
         var profs=L('profs',{}), me=null, key=null; for(var k in profs){ if(profs[k].id===pid){me=profs[k];key=k;} }
         if(!me) return JSON.stringify({error:'signin'});
         var tot=0,i; for(i=0;i<items.length;i++){ tot+=Math.max(0,Math.min(500,parseInt(items[i].n,10)||0)); }
         if(tot<=0) return JSON.stringify({error:'nothing'});
-        me.total+=tot; profs[key]=me; S('profs',profs); var st=L('stat',{t:0,p:0,a:0}); st.t+=tot; S('stat',st);
+        me.total+=tot; if(!me.personal) me.personal={goal:0,log:{}}; if(dayKey && /^\d{4}-\d{2}-\d{2}$/.test(String(dayKey))) me.personal.log[dayKey]=(me.personal.log[dayKey]||0)+tot; profs[key]=me; S('profs',profs); var st=L('stat',{t:0,p:0,a:0}); st.t+=tot; S('stat',st);
         for(i=0;i<items.length;i++){ if(items[i].n>0) feedPush(me.name,items[i].label,'thank',items[i].n); }
         var distinct=markNamesMock(namesJson);
         if(batchId){ proc[batchId]=me.total; S('proc',proc); }
@@ -443,11 +443,13 @@
       apiAnswerTrust:function(token,trustId,shareType,abridged){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]); for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid&&!tr[i].answered){ tr[i].answered=true; tr[i].answeredOn=new Date().getTime(); tr[i].shareType=(shareType==='share')?'share':'none'; tr[i].abridged=String(abridged||'').slice(0,140); S('trust',tr); var st=L('stat',{t:0,p:0,a:0}); st.a++; S('stat',st); if(shareType==='share') feedPush('The Lord has done it', String(abridged||'A trust was answered').slice(0,140),'testimony',1); } } return JSON.stringify({ok:true}); },
       apiRemoveTrust:function(token,trustId){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]),keep=[]; for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid){ if(tr[i].answered){ var st=L('stat',{t:0,p:0,a:0}); st.a=Math.max(0,st.a-1); S('stat',st); } } else keep.push(tr[i]); } S('trust',keep); return JSON.stringify({ok:true}); },
       apiTestimonies:function(){ var tr=L('trust',[]), out=[]; for(var i=0;i<tr.length;i++){ if(tr[i].answered && tr[i].shareType==='share'){ out.push({ when:(tr[i].answeredOn||tr[i].committed||0), line:String(tr[i].abridged||'') }); } } out.sort(function(a,b){ return b.when-a.when; }); return JSON.stringify({testimonies:out,count:out.length}); },
-      apiGoal:function(token,goal){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var profs=L('profs',{}), me=null; for(var k in profs){ if(profs[k].id===pid) me=profs[k]; } if(!me) return JSON.stringify({error:'signin'}); feedPush(me.name, 'met today’s goal — '+(parseInt(goal,10)||0)+' thanksgivings', 'goal', 1); return JSON.stringify({ok:true}); },
+      apiGoal:function(token,goal,phase){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var profs=L('profs',{}), me=null; for(var k in profs){ if(profs[k].id===pid) me=profs[k]; } if(!me) return JSON.stringify({error:'signin'}); goal=parseInt(goal,10)||0; var lbl=(phase==='half')?('is halfway to today’s goal — '+Math.ceil(goal/2)+' of '+goal):('met today’s goal — '+goal+' thanksgivings'); feedPush(me.name, lbl, 'goal', 1); return JSON.stringify({ok:true}); },
+      apiSetGoal:function(token,goal){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var profs=L('profs',{}),me=null,key=null; for(var k in profs){ if(profs[k].id===pid){me=profs[k];key=k;} } if(!me) return JSON.stringify({error:'signin'}); if(!me.personal) me.personal={goal:0,log:{}}; me.personal.goal=Math.max(0,parseInt(goal,10)||0); profs[key]=me; S('profs',profs); return JSON.stringify({ok:true,goal:me.personal.goal}); },
+      apiSyncLog:function(token,logJson){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var incoming; try{incoming=JSON.parse(logJson||'{}');}catch(e){incoming=null;} if(!incoming) return JSON.stringify({ok:true}); var profs=L('profs',{}),me=null,key=null; for(var k in profs){ if(profs[k].id===pid){me=profs[k];key=k;} } if(!me) return JSON.stringify({error:'signin'}); if(!me.personal) me.personal={goal:0,log:{}}; for(var d in incoming){ if(incoming.hasOwnProperty(d)&&/^\d{4}-\d{2}-\d{2}$/.test(d)){ var v=parseInt(incoming[d],10)||0; if(v>(me.personal.log[d]||0)) me.personal.log[d]=v; } } profs[key]=me; S('profs',profs); return JSON.stringify({ok:true}); },
       apiMovement:function(){ return snap(); },
       apiState:function(token){ var pid=resolve(token); var personal={displayName:'',total:0,trust:[]}; if(!pid){ personal.signedOut=true; return JSON.stringify({personal:personal,movement:JSON.parse(snap())}); }
         var profs=L('profs',{}), me=null; for(var k in profs){ if(profs[k].id===pid) me=profs[k]; } if(!me){ personal.signedOut=true; return JSON.stringify({personal:personal,movement:JSON.parse(snap())}); }
-        personal.displayName=me.name; personal.total=me.total; var tr=L('trust',[]); for(var i=0;i<tr.length;i++){ if(tr[i].pid===pid) personal.trust.push({id:tr[i].id,text:tr[i].text,committed:tr[i].committed,answered:tr[i].answered,answeredOn:tr[i].answeredOn,shared:tr[i].shareType==='share'}); }
+        personal.displayName=me.name; personal.total=me.total; if(me.personal){ personal.goal=me.personal.goal||0; personal.log=me.personal.log||{}; } var tr=L('trust',[]); for(var i=0;i<tr.length;i++){ if(tr[i].pid===pid) personal.trust.push({id:tr[i].id,text:tr[i].text,committed:tr[i].committed,answered:tr[i].answered,answeredOn:tr[i].answeredOn,shared:tr[i].shareType==='share'}); }
         return JSON.stringify({personal:personal,movement:JSON.parse(snap())}); }
     };
   })();
@@ -543,7 +545,7 @@
   function addThank(label){
     tallies[label]=(tallies[label]||0)+1; queue[label]=(queue[label]||0)+1;
     var t=document.getElementById('ty_'+cssId(label)); if(t) t.textContent=tallies[label];
-    paintTotal(); logThank(1); checkGoalMet(); paintGoal();
+    paintTotal(); logThank(1); checkGoalMet(); checkGoalHalf(); paintGoal();
   }
   // ---- personal by-date log + History (on-device; names count via the ported journey) ----
   var dlog = load('tm_dlog', {});
@@ -613,14 +615,14 @@
     }, function(){ if(!host.getAttribute('data-loaded')) host.innerHTML='<div class="tw-head"><div class="tw-title">Testimonies</div></div><div class="empty">Couldn’t load testimonies — please try again.</div>'; });
   };
   // ---- daily thanksgiving goal (on-device; broadcasts a once-a-day 🎯 to the family feed when met) ----
-  var goal = load('tm_goal', 0), goalMetDay = load('tm_goalMetDay', '');
+  var goal = load('tm_goal', 0), goalMetDay = load('tm_goalMetDay', ''), goalHalfDay = load('tm_goalHalfDay', ''), syncedUp=false;
   function todayCount(){ return dlog[todayKey()]||0; }
   function yesterdayShort(){ if(goal<=0) return 0; var y=dlog[daysAgoKey(1)]||0; return (y>0 && y<goal) ? (goal-y) : 0; }
   window.setGoal=function(){
     var v=prompt('Your daily thanksgiving goal — how many times a day?', String(goal>0?goal:30));
     if(v===null) return; v=parseInt(String(v).replace(/[^0-9]/g,''),10);
     if(!v||v<1){ toast('Enter a number, like 30. 🙏'); return; }
-    if(v>100000) v=100000; goal=v; save('tm_goal',goal); renderGoal(); toast('Daily goal set to '+fmt(goal)+'. 🙏'); checkGoalMet();
+    if(v>100000) v=100000; goal=v; save('tm_goal',goal); if(token) call('apiSetGoal',[token, goal], function(){}, function(){}); renderGoal(); toast('Daily goal set to '+fmt(goal)+'. 🙏'); checkGoalMet();
   };
   function renderGoal(){
     var host=document.getElementById('goalCard'); if(!host) return;
@@ -652,8 +654,16 @@
     if(todayCount()>=goal && goalMetDay!==todayKey()){
       goalMetDay=todayKey(); save('tm_goalMetDay',goalMetDay);
       toast('🎉 Goal met — glory to God!');
-      if(token) call('apiGoal',[token, goal], function(){}, function(){});   // broadcast to Live (server also dedups per day)
+      if(token) call('apiGoal',[token, goal, 'met'], function(){}, function(){});   // broadcast to Live (server dedups per day)
       renderGoal();
+    }
+  }
+  function checkGoalHalf(){
+    if(goal<=0 || goalMetDay===todayKey()) return;                 // met already? no halfway shout needed
+    if(todayCount()>=Math.ceil(goal/2) && todayCount()<goal && goalHalfDay!==todayKey()){
+      goalHalfDay=todayKey(); save('tm_goalHalfDay',goalHalfDay);
+      toast('🔥 Halfway to your goal — keep going!');
+      if(token) call('apiGoal',[token, goal, 'half'], function(){}, function(){});   // momentum shout to the family
     }
   }
   window.addPhrase=function(){
@@ -672,7 +682,7 @@
   }
   function sendBatch(){
     if(!pending) return; var p=pending;
-    call('apiThank',[token, JSON.stringify(p.items), p.batchId, JSON.stringify(p.names||[])], function(raw){
+    call('apiThank',[token, JSON.stringify(p.items), p.batchId, JSON.stringify(p.names||[]), todayKey()], function(raw){
       var d=parse(raw);
       if(!d || d.error){
         if(d && d.error==='signin'){ pending=null; return handleSignedOut(); }
@@ -803,6 +813,10 @@
         confirmedTotal=d.personal.total||0; paintTotal();
         trustList=(d.personal.trust||[]).sort(function(a,b){ return (b.committed||0)-(a.committed||0); });
         renderTrust();
+        if(d.personal.goal!=null && d.personal.goal>0 && goal<=0){ goal=d.personal.goal; save('tm_goal',goal); }   // adopt the server goal if none set here
+        if(d.personal.log){ var sl=d.personal.log, dk2; for(dk2 in sl){ if(sl.hasOwnProperty(dk2)) dlog[dk2]=Math.max(dlog[dk2]||0, sl[dk2]||0); } save('tm_dlog',dlog); }   // merge server History (server is authoritative; max keeps optimistic local)
+        if(!syncedUp && token){ syncedUp=true; var up={},dk3; for(dk3 in dlog){ if(dlog.hasOwnProperty(dk3) && dk3!==todayKey()) up[dk3]=dlog[dk3]; } if(dk3!==undefined) call('apiSyncLog',[token, JSON.stringify(up)], function(){}, function(){}); }   // one-time backup of existing local history (past days only)
+        if(curTab==='thank') renderGoal(); else if(curTab==='history') renderHistory();
       }
       if(d.movement){ setNum('sThanks',d.movement.totalThanks); setNum('sPeople',d.movement.people); setNum('sAnswered',d.movement.answered); lastMovementTotal=d.movement.totalThanks; renderJourney(d.movement.distinctNames, d.movement.totalThanks); renderFeed(d.movement.feed||[]); }
     }, function(){

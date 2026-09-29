@@ -50,6 +50,10 @@
   .jrn-bar{height:12px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;border:1px solid rgba(255,255,255,.08);}
   .jrn-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--gold-lite),var(--gold));box-shadow:0 0 12px rgba(201,162,39,.5);transition:width .8s cubic-bezier(.2,.8,.2,1);}
   .jrn-sub{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:#cdd8e6;text-align:center;margin-top:11px;line-height:1.5;}
+  .jrn-split{height:1px;background:var(--line);margin:14px 0 12px;}
+  .jrn-thanks{text-align:center;}
+  .jrn-tn{font-family:'Saira Condensed',sans-serif;font-weight:700;color:var(--gold-lite);font-size:21px;letter-spacing:.02em;}
+  .jrn-tl{font-family:'Saira Condensed',sans-serif;letter-spacing:.11em;text-transform:uppercase;font-size:10.5px;color:#9fb0c2;font-weight:600;margin-left:4px;}
   .invite{width:100%;margin-top:18px;font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px;border:0;border-radius:16px;padding:14px;cursor:pointer;color:#fff;background:linear-gradient(180deg,#2AB559,#1E9E48);box-shadow:0 8px 20px rgba(30,158,72,.32);}
   .invite:active{transform:scale(.99);}
   .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
@@ -240,9 +244,11 @@
     <div class="panel active" id="panMove">
       <div class="journey">
         <div class="jrn-eye">God’s 1,000 Names &bull; called together</div>
-        <div class="jrn-num"><span id="jrnCount">0</span><span class="jrn-of">of 1,000</span></div>
+        <div class="jrn-num"><span id="jrnCount">0</span><span class="jrn-of">of 1,000 names</span></div>
         <div class="jrn-bar"><div class="jrn-fill" id="jrnFill"></div></div>
-        <div class="jrn-sub" id="jrnSub">Every thanksgiving calls one of His names. Let’s honour all 1,000 together. 🙏</div>
+        <div class="jrn-sub" id="jrnSub">Distinct names of God the family has called through the litany. 🙏</div>
+        <div class="jrn-split"></div>
+        <div class="jrn-thanks"><span class="jrn-tn" id="jrnThanks">0</span><span class="jrn-tl">thanksgivings raised together</span></div>
       </div>
       <div class="stat-grid">
         <div class="stat"><div class="n" id="sThanks">0</div><div class="k">Thanksgivings</div></div>
@@ -369,7 +375,10 @@
     function L(k,d){ try{ var v=localStorage.getItem('mk_'+k); return v==null?d:JSON.parse(v); }catch(e){ return d; } }
     function S(k,v){ try{ localStorage.setItem('mk_'+k, JSON.stringify(v)); }catch(e){} }
     function feedPush(name,label,kind,n){ var f=L('feed',[]); f.push({ts:new Date().getTime(),name:name,label:label,kind:kind,n:n||1}); if(f.length>300) f=f.slice(-300); S('feed',f); }
-    function snap(){ var st=L('stat',{t:0,p:0,a:0}); var f=L('feed',[]).slice(-40).reverse(); return JSON.stringify({totalThanks:st.t,people:st.p,answered:st.a,feed:f}); }
+    function nameset(){ return L('nameset',{}); }
+    function namesetCount(){ var s=nameset(),n=0,k; for(k in s){ if(s.hasOwnProperty(k)) n++; } return n; }
+    function markNamesMock(namesJson){ if(!namesJson) return namesetCount(); var idxs; try{idxs=JSON.parse(namesJson);}catch(e){idxs=[];} var s=nameset(),ch=false; for(var i=0;i<idxs.length;i++){ var ix=parseInt(idxs[i],10); if(ix>=0&&ix<1000&&!s[ix]){ s[ix]=1; ch=true; } } if(ch) S('nameset',s); return namesetCount(); }
+    function snap(){ var st=L('stat',{t:0,p:0,a:0}); var f=L('feed',[]).slice(-40).reverse(); return JSON.stringify({totalThanks:st.t,people:st.p,answered:st.a,distinctNames:namesetCount(),feed:f}); }
     function sess(){ return L('sess',{}); }
     function resolve(token){ return sess()[token]||null; }
     return {
@@ -381,8 +390,8 @@
         var id='p'+new Date().getTime(); profs[key]={id:id,pin:pin,name:name,total:0}; S('profs',profs);
         var st=L('stat',{t:0,p:0,a:0}); st.p++; S('stat',st); feedPush(name,'joined the movement','join',1); sm[tk]=id; S('sess',sm);
         return JSON.stringify({token:tk,displayName:name,isNew:true}); },
-      apiThank:function(token,itemsJson,batchId){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'});
-        var proc=L('proc',{}); if(batchId&&proc[batchId]!=null) return JSON.stringify({ok:true,personalTotal:proc[batchId],dup:true});
+      apiThank:function(token,itemsJson,batchId,namesJson){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'});
+        var proc=L('proc',{}); if(batchId&&proc[batchId]!=null) return JSON.stringify({ok:true,personalTotal:proc[batchId],distinctNames:namesetCount(),dup:true});
         var items; try{items=JSON.parse(itemsJson);}catch(e){items=[];}
         var profs=L('profs',{}), me=null, key=null; for(var k in profs){ if(profs[k].id===pid){me=profs[k];key=k;} }
         if(!me) return JSON.stringify({error:'signin'});
@@ -390,8 +399,9 @@
         if(tot<=0) return JSON.stringify({error:'nothing'});
         me.total+=tot; profs[key]=me; S('profs',profs); var st=L('stat',{t:0,p:0,a:0}); st.t+=tot; S('stat',st);
         for(i=0;i<items.length;i++){ if(items[i].n>0) feedPush(me.name,items[i].label,'thank',items[i].n); }
+        var distinct=markNamesMock(namesJson);
         if(batchId){ proc[batchId]=me.total; S('proc',proc); }
-        return JSON.stringify({ok:true,personalTotal:me.total}); },
+        return JSON.stringify({ok:true,personalTotal:me.total,distinctNames:distinct}); },
       apiAddTrust:function(token,text){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]); var id='t'+new Date().getTime(); tr.push({id:id,pid:pid,text:String(text||'').slice(0,280),committed:new Date().getTime(),answered:false,answeredOn:0,shareType:'none'}); S('trust',tr); return JSON.stringify({ok:true,trustId:id}); },
       apiAnswerTrust:function(token,trustId,shareType,abridged){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]); for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid&&!tr[i].answered){ tr[i].answered=true; tr[i].answeredOn=new Date().getTime(); tr[i].shareType=(shareType==='share')?'share':'none'; S('trust',tr); var st=L('stat',{t:0,p:0,a:0}); st.a++; S('stat',st); if(shareType==='share') feedPush('The Lord has done it', String(abridged||'A trust was answered').slice(0,140),'testimony',1); } } return JSON.stringify({ok:true}); },
       apiRemoveTrust:function(token,trustId){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]),keep=[]; for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid){ if(tr[i].answered){ var st=L('stat',{t:0,p:0,a:0}); st.a=Math.max(0,st.a-1); S('stat',st); } } else keep.push(tr[i]); } S('trust',keep); return JSON.stringify({ok:true}); },
@@ -465,7 +475,9 @@
     if(which==='move'){ startPolling(); pollNow(); } else { stopPolling(); }
   };
   // ---- bridges the ported Names journey module calls into ----
-  window.__ttOffer = function(n, nm){ var lbl=(nm==null?'':String(nm))||'Thank You Jesus'; var k=Math.max(1,n||1); for(var i=0;i<k;i++) addThank(lbl); };  // each name called → shared feed + total
+  var nameQ={}, lastDistinct=0, NAME_IDX=null;
+  function nameIndexOf(name){ if(NAME_IDX===null){ NAME_IDX={}; try{ var f=0; TT_NAMES_DATA.sessions.forEach(function(s){ s.names.forEach(function(e){ if(NAME_IDX[e.n]==null) NAME_IDX[e.n]=f; f++; }); }); }catch(e){ NAME_IDX={}; } } var v=NAME_IDX[name]; return (v==null)?-1:v; }
+  window.__ttOffer = function(n, nm){ var lbl=(nm==null?'':String(nm))||'Thank You Jesus'; var k=Math.max(1,n||1); for(var i=0;i<k;i++) addThank(lbl); if(nm!=null){ var ix=nameIndexOf(String(nm)); if(ix>=0) nameQ[ix]=1; } };  // name → shared feed + total + the family's distinct-names set
   window.__ttToast = function(a,b){ toast(b ? (a+' — '+b) : a); };
   window.__ttConfetti = function(){};
   window.__ttStopListen = function(){ try{ stopListen(); }catch(e){} };
@@ -533,22 +545,25 @@
     custom.push({label:v, hear:[keyify(v)]}); save('tm_custom',custom); inp.value=''; renderPhrases(); toast('Added “'+v+'”');
   };
   function queueToItems(q){ var items=[],l; for(l in q){ if(q[l]>0) items.push({label:l,n:q[l]}); } return items; }
+  function nameKeys(){ var a=[],k; for(k in nameQ){ if(nameQ.hasOwnProperty(k)) a.push(parseInt(k,10)); } return a; }
   function flushThanks(){
     if(pending){ sendBatch(); return; }                 // retry the same batch (same batchId)
-    var items=queueToItems(queue); if(!items.length) return;
+    var items=queueToItems(queue), names=nameKeys(); if(!items.length && !names.length) return;
     var count=0; for(var i=0;i<items.length;i++) count+=items[i].n;
-    pending={ batchId:uid(), items:items, count:count }; queue={};
+    pending={ batchId:uid(), items:items, count:count, names:names }; queue={}; nameQ={};
     sendBatch();
   }
   function sendBatch(){
     if(!pending) return; var p=pending;
-    call('apiThank',[token, JSON.stringify(p.items), p.batchId], function(raw){
+    call('apiThank',[token, JSON.stringify(p.items), p.batchId, JSON.stringify(p.names||[])], function(raw){
       var d=parse(raw);
       if(!d || d.error){
         if(d && d.error==='signin'){ pending=null; return handleSignedOut(); }
         return;                                          // keep pending; retry next tick
       }
-      if(pending===p){ if(d.personalTotal!=null) confirmedTotal=d.personalTotal; pending=null; paintTotal(); }
+      if(pending===p){ if(d.personalTotal!=null) confirmedTotal=d.personalTotal;
+        if(d.distinctNames!=null){ lastDistinct=d.distinctNames; if(curTab==='move') renderJourney(lastDistinct, confirmedTotal); }
+        pending=null; paintTotal(); }
     }, function(){ /* network fail: keep pending, retry next tick */ });
   }
   function flushNow(){ flushThanks(); }
@@ -612,22 +627,22 @@
   function setLive(on){ var d=document.getElementById('liveDot'), l=document.getElementById('liveLabel'); if(d) d.classList.toggle('off',!on); if(l) l.textContent = on ? 'Live • the family right now' : 'Paused — open this tab to go live'; }
   var lastFeedKey='';
   function pollNow(){
-    call('apiMovement',[], function(raw){ var m=parse(raw); if(!m||m.error) return; setNum('sThanks',m.totalThanks); setNum('sPeople',m.people); setNum('sAnswered',m.answered); renderJourney(m.totalThanks); renderFeed(m.feed||[]); });
+    call('apiMovement',[], function(raw){ var m=parse(raw); if(!m||m.error) return; setNum('sThanks',m.totalThanks); setNum('sPeople',m.people); setNum('sAnswered',m.answered); renderJourney(m.distinctNames, m.totalThanks); renderFeed(m.feed||[]); });
   }
   function setNum(id,v){ var el=document.getElementById(id); if(el) el.textContent=fmt(v); }
   function fmt(n){ try{ return (n||0).toLocaleString(); }catch(e){ return String(n||0); } }
   // shared 1,000-Names journey: each family thanksgiving calls one of God's names; fill to 1,000, then loop
-  function renderJourney(total){
-    total=total||0; var TARGET=1000, round, inRound;
-    if(total>0 && total%TARGET===0){ round=total/TARGET; inRound=TARGET; }   // a full round just completed
-    else { round=Math.floor(total/TARGET)+1; inRound=total%TARGET; }
-    var pct = inRound>0 ? Math.max(2, Math.round(inRound/TARGET*100)) : 0;    // a visible sliver once it starts
+  // Two DISTINCT things: distinctNames = how many of the 1,000 names of God the family has actually called
+  // (the real journey); total = total thanksgivings raised (repeated praise). They are not the same number.
+  function renderJourney(distinct, total){
+    distinct=distinct||0; total=total||0; var TARGET=1000; if(distinct>TARGET) distinct=TARGET;
+    var pct = distinct>0 ? Math.max(1.5, Math.round(distinct/TARGET*100)) : 0;
     var fill=document.getElementById('jrnFill'); if(fill) fill.style.width=pct+'%';
-    var c=document.getElementById('jrnCount'); if(c) c.textContent=fmt(inRound);
+    var c=document.getElementById('jrnCount'); if(c) c.textContent=fmt(distinct);
+    var t=document.getElementById('jrnThanks'); if(t) t.textContent=fmt(total);
     var s=document.getElementById('jrnSub'); if(!s) return;
-    if(inRound===TARGET){ s.innerHTML='🎉 All 1,000 of His names, called together — Round '+round+' complete! Begin again in praise.'; }
-    else if(round>1){ s.innerHTML='Round '+round+' &bull; '+fmt(total)+' names called all-time. Every thanksgiving calls one more.'; }
-    else { s.innerHTML='Every thanksgiving calls one of His names. Let’s honour all 1,000 together. 🙏'; }
+    if(distinct>=TARGET){ s.innerHTML='🎉 All 1,000 of His names, called together! Glory to God alone.'; }
+    else { s.innerHTML='Distinct names of God the family has called — journey to all 1,000 together. 🙏'; }
   }
   window.inviteFamily=function(){
     var msg='🙏 *Thank & Trust — The Movement*\n\n'+
@@ -661,7 +676,7 @@
         trustList=(d.personal.trust||[]).sort(function(a,b){ return (b.committed||0)-(a.committed||0); });
         renderTrust();
       }
-      if(d.movement){ setNum('sThanks',d.movement.totalThanks); setNum('sPeople',d.movement.people); setNum('sAnswered',d.movement.answered); renderJourney(d.movement.totalThanks); renderFeed(d.movement.feed||[]); }
+      if(d.movement){ setNum('sThanks',d.movement.totalThanks); setNum('sPeople',d.movement.people); setNum('sAnswered',d.movement.answered); renderJourney(d.movement.distinctNames, d.movement.totalThanks); renderFeed(d.movement.feed||[]); }
     }, function(){
       if(firstLoad){ firstLoad=false; hideBootLoader(); }    // couldn't reach it on first try: still show the shell so it isn't a blank screen; polling retries
     });

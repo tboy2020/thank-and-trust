@@ -36,8 +36,9 @@
   .privacy .lk{font-size:18px;flex:0 0 auto;}
   .privacy .pt{font-size:12.5px;color:#2e5f52;line-height:1.5;}
   .privacy .pt b{color:#1f4a3f;}
-  .tabs{display:flex;gap:4px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:14px;padding:4px;margin:14px 0 14px;}
-  .tab{flex:1;font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.03em;text-transform:uppercase;font-size:11.5px;color:#cdd8e6;background:transparent;border:0;border-radius:10px;padding:11px 3px;cursor:pointer;transition:.16s;white-space:nowrap;}
+  .tabs{display:flex;gap:4px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:14px;padding:4px;margin:14px 0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex:0 0 auto;font-family:'Saira Condensed',sans-serif;font-weight:600;letter-spacing:.05em;text-transform:uppercase;font-size:12px;color:#cdd8e6;background:transparent;border:0;border-radius:10px;padding:11px 13px;cursor:pointer;transition:.16s;white-space:nowrap;}
   .tab.active{background:linear-gradient(180deg,var(--gold-lite),var(--gold));color:var(--navy);box-shadow:0 6px 16px rgba(201,162,39,.25);}
   .panel{display:none;animation:fade .3s ease;}
   .panel.active{display:block;}
@@ -196,6 +197,17 @@
   #panHistory .hdays .hd{font-family:'Fraunces',serif;font-style:italic;color:#cdd8e6;}
   #panHistory .hdays .hc{font-family:'Saira Condensed',sans-serif;font-weight:700;color:var(--gold-lite);letter-spacing:.05em;}
   #panHistory .section-h{color:var(--gold-lite);}
+  /* ===== testimonies wall ===== */
+  #panTestis .tw-head{text-align:center;margin-bottom:16px;}
+  #panTestis .tw-eye{font-family:'Fraunces',serif;font-style:italic;color:var(--gold-lite);font-size:15px;}
+  #panTestis .tw-title{font-family:'Saira Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:26px;color:#fff;margin-top:2px;}
+  #panTestis .tw-sub{font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:#cdd8e6;margin-top:6px;line-height:1.5;}
+  #panTestis .tw-wall{display:flex;flex-direction:column;gap:12px;}
+  #panTestis .tw-card{background:linear-gradient(180deg,var(--paper),#fff);border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:0 8px 20px rgba(0,0,0,.2);}
+  #panTestis .tw-badge{font-family:'Saira Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:11px;color:var(--verd);font-weight:700;}
+  #panTestis .tw-line{font-family:'Fraunces',serif;font-style:italic;font-size:17px;color:var(--navy);line-height:1.45;margin-top:8px;}
+  #panTestis .tw-line.tw-quiet{color:#6b6250;}
+  #panTestis .tw-when{font-family:'Saira Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;font-size:11px;color:#9aa0a6;margin-top:10px;}
 </style>
 </head>
 <body>
@@ -239,6 +251,7 @@
       <button class="tab" id="tabTrust" onclick="showTab('trust')">Trust</button>
       <button class="tab" id="tabNames" onclick="showTab('names')">Names</button>
       <button class="tab" id="tabHistory" onclick="showTab('history')">History</button>
+      <button class="tab" id="tabTestis" onclick="showTab('testis')">Testimonies</button>
     </div>
 
     <div class="panel active" id="panMove">
@@ -292,6 +305,7 @@
 
     <div class="panel" id="panNames"></div>
     <div class="panel" id="panHistory"></div>
+    <div class="panel" id="panTestis"></div>
   </section>
 
   <footer><div class="g">Glory to God alone</div><div class="amhg">AMHG</div></footer>
@@ -403,8 +417,9 @@
         if(batchId){ proc[batchId]=me.total; S('proc',proc); }
         return JSON.stringify({ok:true,personalTotal:me.total,distinctNames:distinct}); },
       apiAddTrust:function(token,text){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]); var id='t'+new Date().getTime(); tr.push({id:id,pid:pid,text:String(text||'').slice(0,280),committed:new Date().getTime(),answered:false,answeredOn:0,shareType:'none'}); S('trust',tr); return JSON.stringify({ok:true,trustId:id}); },
-      apiAnswerTrust:function(token,trustId,shareType,abridged){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]); for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid&&!tr[i].answered){ tr[i].answered=true; tr[i].answeredOn=new Date().getTime(); tr[i].shareType=(shareType==='share')?'share':'none'; S('trust',tr); var st=L('stat',{t:0,p:0,a:0}); st.a++; S('stat',st); if(shareType==='share') feedPush('The Lord has done it', String(abridged||'A trust was answered').slice(0,140),'testimony',1); } } return JSON.stringify({ok:true}); },
+      apiAnswerTrust:function(token,trustId,shareType,abridged){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]); for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid&&!tr[i].answered){ tr[i].answered=true; tr[i].answeredOn=new Date().getTime(); tr[i].shareType=(shareType==='share')?'share':'none'; tr[i].abridged=String(abridged||'').slice(0,140); S('trust',tr); var st=L('stat',{t:0,p:0,a:0}); st.a++; S('stat',st); if(shareType==='share') feedPush('The Lord has done it', String(abridged||'A trust was answered').slice(0,140),'testimony',1); } } return JSON.stringify({ok:true}); },
       apiRemoveTrust:function(token,trustId){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]),keep=[]; for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid){ if(tr[i].answered){ var st=L('stat',{t:0,p:0,a:0}); st.a=Math.max(0,st.a-1); S('stat',st); } } else keep.push(tr[i]); } S('trust',keep); return JSON.stringify({ok:true}); },
+      apiTestimonies:function(){ var tr=L('trust',[]), out=[]; for(var i=0;i<tr.length;i++){ if(tr[i].answered && tr[i].shareType==='share'){ out.push({ when:(tr[i].answeredOn||tr[i].committed||0), line:String(tr[i].abridged||'') }); } } out.sort(function(a,b){ return b.when-a.when; }); return JSON.stringify({testimonies:out,count:out.length}); },
       apiMovement:function(){ return snap(); },
       apiState:function(token){ var pid=resolve(token); var personal={displayName:'',total:0,trust:[]}; if(!pid){ personal.signedOut=true; return JSON.stringify({personal:personal,movement:JSON.parse(snap())}); }
         var profs=L('profs',{}), me=null; for(var k in profs){ if(profs[k].id===pid) me=profs[k]; } if(!me){ personal.signedOut=true; return JSON.stringify({personal:personal,movement:JSON.parse(snap())}); }
@@ -467,11 +482,13 @@
   }
   window.showTab=function(which){
     curTab=which;
-    var map={move:'panMove',thank:'panThank',trust:'panTrust',names:'panNames',history:'panHistory'}, tmap={move:'tabMove',thank:'tabThank',trust:'tabTrust',names:'tabNames',history:'tabHistory'};
+    var map={move:'panMove',thank:'panThank',trust:'panTrust',names:'panNames',history:'panHistory',testis:'panTestis'}, tmap={move:'tabMove',thank:'tabThank',trust:'tabTrust',names:'tabNames',history:'tabHistory',testis:'tabTestis'};
     for(var k in map){ document.getElementById(map[k]).classList.toggle('active',k===which); document.getElementById(tmap[k]).classList.toggle('active',k===which); }
+    try{ var at=document.getElementById(tmap[which]); if(at&&at.scrollIntoView) at.scrollIntoView({inline:'center',block:'nearest'}); }catch(e){}
     if(which!=='thank') stopListen();
     if(which==='names'){ if(window.__namesShow) window.__namesShow(); } else { if(window.__namesHide) window.__namesHide(); }
     if(which==='history') renderHistory();
+    if(which==='testis') renderTestimonies();
     if(which==='move'){ startPolling(); pollNow(); } else { stopPolling(); }
   };
   // ---- bridges the ported Names journey module calls into ----
@@ -538,6 +555,26 @@
         '<div class="hcell wide"><div class="hn">'+fmt(all)+'</div><div class="hk">All time &bull; this device</div></div>'+
       '</div>'+
       '<div class="section-h">Recent days</div><div class="hdays">'+rows+'</div>';
+  };
+  // ---- the family's testimonies wall (anonymized answered prayers) ----
+  window.renderTestimonies=function(){
+    var host=document.getElementById('panTestis'); if(!host) return;
+    if(!host.getAttribute('data-loaded')) host.innerHTML='<div class="tw-head"><div class="tw-title">Testimonies</div></div><div class="empty">Loading the family’s testimonies…</div>';
+    call('apiTestimonies',[], function(raw){
+      var d=parse(raw); if(!d) return; host.setAttribute('data-loaded','1');
+      var list=d.testimonies||[];
+      var html='<div class="tw-head"><div class="tw-eye">The Lord has done it</div><div class="tw-title">Testimonies</div><div class="tw-sub">Answered prayers the family has shared — always anonymous. Be strengthened. 🙌</div></div>';
+      if(!list.length){ html+='<div class="empty">No testimonies yet. When a trust is answered and shared, it will shine here.</div>'; }
+      else { html+='<div class="tw-wall">';
+        for(var i=0;i<list.length;i++){ var t=list[i], line=(t.line||'').trim();
+          html+='<div class="tw-card"><div class="tw-badge">🙌 He answered</div>'+
+            (line ? '<div class="tw-line">“'+esc(line)+'”</div>' : '<div class="tw-line tw-quiet">The Lord has done it.</div>')+
+            '<div class="tw-when">'+niceDate(t.when)+'</div></div>';
+        }
+        html+='</div>';
+      }
+      host.innerHTML=html;
+    }, function(){ if(!host.getAttribute('data-loaded')) host.innerHTML='<div class="tw-head"><div class="tw-title">Testimonies</div></div><div class="empty">Couldn’t load testimonies — please try again.</div>'; });
   };
   window.addPhrase=function(){
     var inp=document.getElementById('newPhrase'); var v=(inp.value||'').trim(); if(!v) return;

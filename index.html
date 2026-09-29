@@ -317,6 +317,27 @@
     .phrases{grid-template-columns:1fr 1fr;}
     .phrases .full{grid-column:1/-1;}
   }
+  /* ===== daily thanksgiving goal ===== */
+  .goal{background:linear-gradient(180deg,var(--paper),#fff);border:1px solid var(--line);border-radius:18px;padding:15px 17px;margin-top:12px;box-shadow:0 8px 20px rgba(0,0,0,.2);}
+  .goal.met{background:linear-gradient(180deg,#eef7f0,#fff);border-color:rgba(46,125,107,.4);}
+  .goal-set{width:100%;font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:14px;border:1px dashed var(--verd);border-radius:14px;padding:14px;cursor:pointer;color:var(--verd);background:rgba(46,125,107,.06);}
+  .goal-top{display:flex;justify-content:space-between;align-items:baseline;}
+  .goal-eye{font-family:'Saira Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:var(--verd);font-weight:600;}
+  .goal-edit{font-family:'Saira Condensed',sans-serif;letter-spacing:.06em;text-transform:uppercase;font-size:11px;color:#9aa0a6;cursor:pointer;font-weight:600;}
+  .goal-num{font-family:'Saira Condensed',sans-serif;font-weight:700;color:var(--navy);font-size:30px;line-height:1;margin:6px 0 10px;}
+  .goal-num .goal-of{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:15px;color:#9aa0a6;margin-left:4px;}
+  .goal-bar{height:11px;border-radius:99px;background:rgba(15,44,76,.1);overflow:hidden;}
+  .goal-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--gold-lite),var(--gold));transition:width .5s cubic-bezier(.2,.8,.2,1);}
+  .goal-sub{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:#5a5142;margin-top:9px;line-height:1.5;}
+  .goal-met-line{font-family:'Saira Condensed',sans-serif;font-weight:700;color:var(--verd);font-size:21px;margin:8px 0 2px;letter-spacing:.01em;}
+  .goal-nudge{font-family:'Fraunces',serif;font-style:italic;font-size:12px;color:#8a7a4a;background:rgba(201,162,39,.1);border-radius:12px;padding:9px 12px;margin-top:10px;line-height:1.5;}
+  #histGoals .gm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 12px;}
+  #histGoals .gm-cell{background:linear-gradient(180deg,var(--paper),#fff);border:1px solid var(--line);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.2);}
+  #histGoals .gm-n{font-family:'Saira Condensed',sans-serif;font-weight:700;color:var(--navy);font-size:26px;line-height:1;}
+  #histGoals .gm-k{font-family:'Saira Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:11px;color:var(--verd);font-weight:600;margin-top:5px;}
+  #histGoals .gm-dots{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px;}
+  #histGoals .gm-dot{width:15px;height:15px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid var(--line);}
+  #histGoals .gm-dot.on{background:linear-gradient(180deg,var(--gold-lite),var(--gold));border-color:transparent;}
 </style>
 </head>
 <body>
@@ -343,6 +364,7 @@
         <div class="count-label">Thanksgivings unto the Lord</div>
         <div class="today">Today: <b id="todayNum">0</b> &nbsp;&bull;&nbsp; Streak keeps the altar burning</div>
       </div>
+      <div class="goal" id="goalCard"></div>
       <div class="row">
         <button class="btn listen" id="listenBtn" onclick="toggleListen()">🎙 Listen &amp; count</button>
       </div>
@@ -406,6 +428,7 @@
       <div class="cum-label" id="hTotalD">as of today</div>
     </div>
 
+    <div id="histGoals"></div>
     <div class="section-h">By day</div>
     <div id="histDays"></div>
 
@@ -461,7 +484,7 @@
     490:"Seventy times seven",777:"Threefold perfection",1000:"A thousand generations"
   };
 
-  var K_COUNTS="tt_counts", K_TOTAL="tt_total", K_TODAY="tt_today", K_DATE="tt_date", K_TRUST="tt_trust", K_CUSTOM="tt_custom", K_LOG="tt_log";
+  var K_COUNTS="tt_counts", K_TOTAL="tt_total", K_TODAY="tt_today", K_DATE="tt_date", K_TRUST="tt_trust", K_CUSTOM="tt_custom", K_LOG="tt_log", K_GOAL="tt_goal", K_GOALMET="tt_goalmet";
 
   function load(k,d){ try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;} }
   function save(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
@@ -478,6 +501,7 @@
   var trust  = load(K_TRUST,[]);
   var custom = load(K_CUSTOM,[]);   // [{id,txt,hear:[key]}]
   var log    = load(K_LOG,{});      // { "YYYY-MM-DD": count } — dated daily history
+  var goal   = load(K_GOAL,0), goalMetDay = load(K_GOALMET,"");   // personal daily thanksgiving goal (on-device)
 
   // normalize any older, non-padded date keys (e.g. "2026-9-2" -> "2026-09-02")
   (function(){
@@ -564,10 +588,63 @@
     var t=document.getElementById("t_"+id); if(t) t.textContent=counts[id];
     document.getElementById("totalNum").textContent=total;
     document.getElementById("todayNum").textContent=today;
+    if(applied>0){ checkGoalMet(); paintGoal(); }
     if(applied>0 && MILESTONES.indexOf(total)>-1){ celebrate(total); }
   }
 
   function bump(id){ bumpBy(id,1); }
+  // ---- daily thanksgiving goal (on-device, personal) ----
+  function daysAgoKey(nb){ var d=new Date(); d.setDate(d.getDate()-nb); return isoDay(d); }
+  function goalYesterdayShort(){ if(goal<=0) return 0; var y=log[daysAgoKey(1)]||0; return (y>0 && y<goal)?(goal-y):0; }
+  window.setGoal=function(){
+    var v=prompt('Your daily thanksgiving goal — how many times a day?', String(goal>0?goal:30));
+    if(v===null) return; v=parseInt(String(v).replace(/[^0-9]/g,''),10);
+    if(!v||v<1){ popToast('Set a number','Try something like 30 a day.'); return; }
+    if(v>100000) v=100000; goal=v; save(K_GOAL,goal); renderGoal(); popToast('Daily goal set','Aim for '+goal+' a day — glory to God.'); checkGoalMet();
+  };
+  function renderGoal(){
+    var host=document.getElementById('goalCard'); if(!host) return;
+    if(goal<=0){ host.className='goal'; host.innerHTML='<button class="goal-set" onclick="setGoal()">🎯 Set a daily thanksgiving goal</button>'; return; }
+    var now=today, met=now>=goal, pct=Math.min(100,Math.round(now/goal*100)), nudge=goalYesterdayShort();
+    if(met){ host.className='goal met';
+      host.innerHTML='<div class="goal-top"><span class="goal-eye">Today’s goal</span><a class="goal-edit" onclick="setGoal()">edit</a></div>'+
+        '<div class="goal-met-line">🎉 Goal met — '+now+' today!</div>'+
+        '<div class="goal-sub">Glory to God. Every thanks is treasured. 🙏</div>';
+    } else { host.className='goal';
+      host.innerHTML='<div class="goal-top"><span class="goal-eye">Today’s goal</span><a class="goal-edit" onclick="setGoal()">goal '+goal+' · edit</a></div>'+
+        '<div class="goal-num"><span id="goalNow">'+now+'</span><span class="goal-of">/ '+goal+'</span></div>'+
+        '<div class="goal-bar"><div class="goal-fill" id="goalFill" style="width:'+pct+'%"></div></div>'+
+        '<div class="goal-sub" id="goalSub">'+(goal-now)+' more to your goal — keep going. 🙏</div>'+
+        (nudge? '<div class="goal-nudge">You were '+nudge+' short yesterday — add them today if you like. No pressure, just grace. 🙏</div>':'');
+    }
+  }
+  function paintGoal(){
+    var host=document.getElementById('goalCard'); if(!host || goal<=0) return;
+    var now=today, met=now>=goal, isMet=host.className.indexOf('met')>-1;
+    if(met!==isMet){ renderGoal(); return; }
+    if(!met){ var f=document.getElementById('goalFill'); if(f) f.style.width=Math.min(100,Math.round(now/goal*100))+'%';
+      var n=document.getElementById('goalNow'); if(n) n.textContent=now;
+      var s=document.getElementById('goalSub'); if(s) s.textContent=(goal-now)+' more to your goal — keep going. 🙏'; }
+  }
+  function checkGoalMet(){
+    if(goal<=0) return;
+    if(today>=goal && goalMetDay!==todayStr()){
+      goalMetDay=todayStr(); save(K_GOALMET,goalMetDay);
+      popToast('Goal met — '+today+' today','Glory to God. Every thanks is treasured.'); bigConfetti();
+      renderGoal();
+    }
+  }
+  function renderHistGoals(){
+    var host=document.getElementById('histGoals'); if(!host) return;
+    if(goal<=0){ host.innerHTML='<div class="section-h">Goals met</div><div class="empty">Set a daily goal on the Thank tab to track your streak. 🎯</div>'; return; }
+    var dm=0, gi; for(gi=0;gi<30;gi++){ if((log[daysAgoKey(gi)]||0)>=goal) dm++; }
+    var streak=0; for(gi=0;gi<400;gi++){ var gc=log[daysAgoKey(gi)]||0; if(gi===0 && gc<goal) continue; if(gc>=goal) streak++; else break; }
+    var gdots=''; for(gi=13;gi>=0;gi--){ gdots+='<span class="gm-dot'+(((log[daysAgoKey(gi)]||0)>=goal)?' on':'')+'"></span>'; }
+    host.innerHTML='<div class="section-h">Goals met &bull; daily goal '+goal+'</div>'+
+      '<div class="gm-grid"><div class="gm-cell"><div class="gm-n">'+streak+'</div><div class="gm-k">Day streak</div></div>'+
+      '<div class="gm-cell"><div class="gm-n">'+dm+'</div><div class="gm-k">Met in 30 days</div></div></div>'+
+      '<div class="gm-dots">'+gdots+'</div>';
+  }
 
   function refreshTotals(){
     document.getElementById("totalNum").textContent=total;
@@ -600,6 +677,7 @@
       document.getElementById(panels[key]).classList.toggle("active", key===which);
       document.getElementById(tabs[key]).classList.toggle("active", key===which);
     }
+    if(which==="thank") renderGoal();
     if(which==="history") renderHistory();
     if(which==="names"){ if(window.__namesShow) window.__namesShow(); }
     else if(window.__namesHide){ window.__namesHide(); }
@@ -700,6 +778,7 @@
     var dEl=document.getElementById("histDays");
     if(!days.length){ dEl.innerHTML='<div class="empty">Your first counted day will appear here.</div>'; }
     else{ var h=""; for(var i=days.length-1;i>=0;i--){ h+=rowHtml(fmtDayLabel(days[i].k),"",days[i].v, days[i].k===t?"today-row":""); } dEl.innerHTML=h; }
+    renderHistGoals();
 
     var wEl=document.getElementById("histWeeks");
     if(!weeksOrder.length){ wEl.innerHTML='<div class="empty">Weeks add up here as you go.</div>'; }
@@ -928,6 +1007,7 @@
     save(K_TOTAL,total); save(K_TODAY,today); save(K_DATE,d); save(K_LOG,log);
     document.getElementById("totalNum").textContent=total;
     document.getElementById("todayNum").textContent=today;
+    checkGoalMet(); paintGoal();
     if(document.getElementById("panHistory").classList.contains("active")) renderHistory();
     if(MILESTONES.indexOf(total)>-1) celebrate(total);
   };
@@ -939,6 +1019,7 @@
 
   // init
   refreshTotals();
+  renderGoal();
   renderTrust();
   renderHistory();
 

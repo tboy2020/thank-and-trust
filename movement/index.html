@@ -208,6 +208,28 @@
   #panTestis .tw-line{font-family:'Fraunces',serif;font-style:italic;font-size:17px;color:var(--navy);line-height:1.45;margin-top:8px;}
   #panTestis .tw-line.tw-quiet{color:#6b6250;}
   #panTestis .tw-when{font-family:'Saira Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;font-size:11px;color:#9aa0a6;margin-top:10px;}
+  /* ===== daily thanksgiving goal ===== */
+  .goal{background:linear-gradient(180deg,var(--paper),#fff);border:1px solid var(--line);border-radius:18px;padding:15px 17px;margin-top:12px;box-shadow:0 8px 20px rgba(0,0,0,.2);}
+  .goal.met{background:linear-gradient(180deg,#eef7f0,#fff);border-color:rgba(46,125,107,.4);}
+  .goal-set{width:100%;font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:14px;border:1px dashed var(--verd);border-radius:14px;padding:14px;cursor:pointer;color:var(--verd);background:rgba(46,125,107,.06);}
+  .goal-top{display:flex;justify-content:space-between;align-items:baseline;}
+  .goal-eye{font-family:'Saira Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:var(--verd);font-weight:600;}
+  .goal-edit{font-family:'Saira Condensed',sans-serif;letter-spacing:.06em;text-transform:uppercase;font-size:11px;color:#9aa0a6;cursor:pointer;font-weight:600;}
+  .goal-num{font-family:'Saira Condensed',sans-serif;font-weight:700;color:var(--navy);font-size:30px;line-height:1;margin:6px 0 10px;}
+  .goal-num .goal-of{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:15px;color:#9aa0a6;margin-left:4px;}
+  .goal-bar{height:11px;border-radius:99px;background:rgba(15,44,76,.1);overflow:hidden;}
+  .goal-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--gold-lite),var(--gold));transition:width .5s cubic-bezier(.2,.8,.2,1);}
+  .goal-sub{font-family:'Fraunces',serif;font-style:italic;font-size:12.5px;color:#5a5142;margin-top:9px;line-height:1.5;}
+  .goal-met-line{font-family:'Saira Condensed',sans-serif;font-weight:700;color:var(--verd);font-size:21px;margin:8px 0 2px;letter-spacing:.01em;}
+  .goal-nudge{font-family:'Fraunces',serif;font-style:italic;font-size:12px;color:#8a7a4a;background:rgba(201,162,39,.1);border-radius:12px;padding:9px 12px;margin-top:10px;line-height:1.5;}
+  #panHistory .gm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  #panHistory .gm-cell{background:linear-gradient(180deg,var(--paper),#fff);border:1px solid var(--line);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.2);}
+  #panHistory .gm-n{font-family:'Saira Condensed',sans-serif;font-weight:700;color:var(--navy);font-size:26px;line-height:1;}
+  #panHistory .gm-k{font-family:'Saira Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:11px;color:var(--verd);font-weight:600;margin-top:5px;}
+  #panHistory .gm-dots{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px;}
+  #panHistory .gm-dot{width:15px;height:15px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid var(--line);}
+  #panHistory .gm-dot.on{background:linear-gradient(180deg,var(--gold-lite),var(--gold));border-color:transparent;}
+  #panHistory .gm-setrow{margin-top:2px;}
 </style>
 </head>
 <body>
@@ -279,6 +301,7 @@
         <div class="count-label">Your thanksgivings</div>
         <div class="count-sub">Every one joins the family's count &amp; the live feed 🙏</div>
       </div>
+      <div class="goal" id="goalCard"></div>
       <div class="listenrow"><button class="btn listen" id="listenBtn" onclick="toggleListen()">🎙 Listen &amp; count</button></div>
       <div class="heard" id="heard"></div>
       <div class="phrases" id="phraseList"></div>
@@ -420,6 +443,7 @@
       apiAnswerTrust:function(token,trustId,shareType,abridged){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]); for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid&&!tr[i].answered){ tr[i].answered=true; tr[i].answeredOn=new Date().getTime(); tr[i].shareType=(shareType==='share')?'share':'none'; tr[i].abridged=String(abridged||'').slice(0,140); S('trust',tr); var st=L('stat',{t:0,p:0,a:0}); st.a++; S('stat',st); if(shareType==='share') feedPush('The Lord has done it', String(abridged||'A trust was answered').slice(0,140),'testimony',1); } } return JSON.stringify({ok:true}); },
       apiRemoveTrust:function(token,trustId){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var tr=L('trust',[]),keep=[]; for(var i=0;i<tr.length;i++){ if(tr[i].id===trustId&&tr[i].pid===pid){ if(tr[i].answered){ var st=L('stat',{t:0,p:0,a:0}); st.a=Math.max(0,st.a-1); S('stat',st); } } else keep.push(tr[i]); } S('trust',keep); return JSON.stringify({ok:true}); },
       apiTestimonies:function(){ var tr=L('trust',[]), out=[]; for(var i=0;i<tr.length;i++){ if(tr[i].answered && tr[i].shareType==='share'){ out.push({ when:(tr[i].answeredOn||tr[i].committed||0), line:String(tr[i].abridged||'') }); } } out.sort(function(a,b){ return b.when-a.when; }); return JSON.stringify({testimonies:out,count:out.length}); },
+      apiGoal:function(token,goal){ var pid=resolve(token); if(!pid) return JSON.stringify({error:'signin'}); var profs=L('profs',{}), me=null; for(var k in profs){ if(profs[k].id===pid) me=profs[k]; } if(!me) return JSON.stringify({error:'signin'}); feedPush(me.name, 'met today’s goal — '+(parseInt(goal,10)||0)+' thanksgivings', 'goal', 1); return JSON.stringify({ok:true}); },
       apiMovement:function(){ return snap(); },
       apiState:function(token){ var pid=resolve(token); var personal={displayName:'',total:0,trust:[]}; if(!pid){ personal.signedOut=true; return JSON.stringify({personal:personal,movement:JSON.parse(snap())}); }
         var profs=L('profs',{}), me=null; for(var k in profs){ if(profs[k].id===pid) me=profs[k]; } if(!me){ personal.signedOut=true; return JSON.stringify({personal:personal,movement:JSON.parse(snap())}); }
@@ -476,7 +500,7 @@
     document.getElementById('app').classList.remove('hidden');
     document.getElementById('whoRow').classList.remove('hidden');
     document.getElementById('whoName').textContent=displayName;
-    renderPhrases(); loadState();
+    renderPhrases(); renderGoal(); loadState();
     if(flushTimer) clearInterval(flushTimer); flushTimer=setInterval(flushThanks,15000);
     startPolling();
   }
@@ -487,6 +511,7 @@
     try{ var at=document.getElementById(tmap[which]); if(at&&at.scrollIntoView) at.scrollIntoView({inline:'center',block:'nearest'}); }catch(e){}
     if(which!=='thank') stopListen();
     if(which==='names'){ if(window.__namesShow) window.__namesShow(); } else { if(window.__namesHide) window.__namesHide(); }
+    if(which==='thank') renderGoal();
     if(which==='history') renderHistory();
     if(which==='testis') renderTestimonies();
     if(which==='move'){ startPolling(); pollNow(); } else { stopPolling(); }
@@ -518,7 +543,7 @@
   function addThank(label){
     tallies[label]=(tallies[label]||0)+1; queue[label]=(queue[label]||0)+1;
     var t=document.getElementById('ty_'+cssId(label)); if(t) t.textContent=tallies[label];
-    paintTotal(); logThank(1);
+    paintTotal(); logThank(1); checkGoalMet(); paintGoal();
   }
   // ---- personal by-date log + History (on-device; names count via the ported journey) ----
   var dlog = load('tm_dlog', {});
@@ -541,11 +566,22 @@
     var keys=[],kk; for(kk in dlog){ if(dlog.hasOwnProperty(kk)&&dlog[kk]>0) keys.push(kk); } keys.sort(); keys.reverse();
     var rows='',j; for(j=0;j<Math.min(14,keys.length);j++){ rows+='<div class="hrow"><span class="hd">'+niceDate(dateFromKey(keys[j]))+'</span><span class="hc">'+fmt(dlog[keys[j]])+'</span></div>'; }
     if(!rows) rows='<div class="empty">Your first thanksgiving will appear here, dated.</div>';
+    var gm='', gi;
+    if(goal>0){
+      var dm=0; for(gi=0;gi<30;gi++){ if((dlog[daysAgoKey(gi)]||0)>=goal) dm++; }
+      var streak=0; for(gi=0;gi<400;gi++){ var gc=dlog[daysAgoKey(gi)]||0; if(gi===0 && gc<goal) continue; if(gc>=goal) streak++; else break; }
+      var gdots=''; for(gi=13;gi>=0;gi--){ gdots+='<span class="gm-dot'+(((dlog[daysAgoKey(gi)]||0)>=goal)?' on':'')+'"></span>'; }
+      gm='<div class="section-h">Goals met <span class="hnote">&bull; daily goal '+fmt(goal)+'</span></div>'+
+        '<div class="gm-grid"><div class="gm-cell"><div class="gm-n">'+streak+'</div><div class="gm-k">Day streak</div></div>'+
+        '<div class="gm-cell"><div class="gm-n">'+dm+'</div><div class="gm-k">Met in 30 days</div></div></div>'+
+        '<div class="gm-dots">'+gdots+'</div>';
+    } else { gm='<div class="section-h">Goals met</div><div class="empty">Set a daily goal on the Thank tab to track your streak. 🎯</div>'; }
     host.innerHTML=''+
       '<div class="hist-you"><div class="hy-eye">Your walk with Him</div><div class="hy-grid">'+
         '<div class="hy-stat"><div class="hy-n">'+fmt(thanks)+'</div><div class="hy-k">Thanksgivings</div></div>'+
         '<div class="hy-stat"><div class="hy-n">'+fmt(names)+'<span class="hy-of">/ 1,000</span></div><div class="hy-k">Names called</div></div>'+
       '</div></div>'+
+      gm+
       '<div class="section-h">By date <span class="hnote">&bull; on this device</span></div>'+
       '<div class="hist-grid">'+
         '<div class="hcell"><div class="hn">'+fmt(today)+'</div><div class="hk">Today</div></div>'+
@@ -576,6 +612,50 @@
       host.innerHTML=html;
     }, function(){ if(!host.getAttribute('data-loaded')) host.innerHTML='<div class="tw-head"><div class="tw-title">Testimonies</div></div><div class="empty">Couldn’t load testimonies — please try again.</div>'; });
   };
+  // ---- daily thanksgiving goal (on-device; broadcasts a once-a-day 🎯 to the family feed when met) ----
+  var goal = load('tm_goal', 0), goalMetDay = load('tm_goalMetDay', '');
+  function todayCount(){ return dlog[todayKey()]||0; }
+  function yesterdayShort(){ if(goal<=0) return 0; var y=dlog[daysAgoKey(1)]||0; return (y>0 && y<goal) ? (goal-y) : 0; }
+  window.setGoal=function(){
+    var v=prompt('Your daily thanksgiving goal — how many times a day?', String(goal>0?goal:30));
+    if(v===null) return; v=parseInt(String(v).replace(/[^0-9]/g,''),10);
+    if(!v||v<1){ toast('Enter a number, like 30. 🙏'); return; }
+    if(v>100000) v=100000; goal=v; save('tm_goal',goal); renderGoal(); toast('Daily goal set to '+fmt(goal)+'. 🙏'); checkGoalMet();
+  };
+  function renderGoal(){
+    var host=document.getElementById('goalCard'); if(!host) return;
+    if(goal<=0){ host.className='goal'; host.innerHTML='<button class="goal-set" onclick="setGoal()">🎯 Set a daily thanksgiving goal</button>'; return; }
+    var now=todayCount(), met=now>=goal, pct=Math.min(100, Math.round(now/goal*100)), nudge=yesterdayShort();
+    if(met){ host.className='goal met';
+      host.innerHTML='<div class="goal-top"><span class="goal-eye">Today’s goal</span><a class="goal-edit" onclick="setGoal()">edit</a></div>'+
+        '<div class="goal-met-line">🎉 Goal met — '+fmt(now)+' today!</div>'+
+        '<div class="goal-sub">Glory to God. Every thanks is treasured. 🙏</div>';
+    } else { host.className='goal';
+      host.innerHTML='<div class="goal-top"><span class="goal-eye">Today’s goal</span><a class="goal-edit" onclick="setGoal()">goal '+fmt(goal)+' · edit</a></div>'+
+        '<div class="goal-num"><span id="goalNow">'+fmt(now)+'</span><span class="goal-of">/ '+fmt(goal)+'</span></div>'+
+        '<div class="goal-bar"><div class="goal-fill" id="goalFill" style="width:'+pct+'%"></div></div>'+
+        '<div class="goal-sub" id="goalSub">'+(goal-now)+' more to your goal — keep going. 🙏</div>'+
+        (nudge? '<div class="goal-nudge">You were '+nudge+' short yesterday — add them today if you like. No pressure, just grace. 🙏</div>':'');
+    }
+  }
+  function paintGoal(){
+    if(curTab!=='thank' || goal<=0) return;
+    var host=document.getElementById('goalCard'); if(!host) return;
+    var now=todayCount(), met=now>=goal, isMet=host.className.indexOf('met')>-1;
+    if(met!==isMet){ renderGoal(); return; }
+    if(!met){ var f=document.getElementById('goalFill'); if(f) f.style.width=Math.min(100,Math.round(now/goal*100))+'%';
+      var n=document.getElementById('goalNow'); if(n) n.textContent=fmt(now);
+      var s=document.getElementById('goalSub'); if(s) s.textContent=(goal-now)+' more to your goal — keep going. 🙏'; }
+  }
+  function checkGoalMet(){
+    if(goal<=0) return;
+    if(todayCount()>=goal && goalMetDay!==todayKey()){
+      goalMetDay=todayKey(); save('tm_goalMetDay',goalMetDay);
+      toast('🎉 Goal met — glory to God!');
+      if(token) call('apiGoal',[token, goal], function(){}, function(){});   // broadcast to Live (server also dedups per day)
+      renderGoal();
+    }
+  }
   window.addPhrase=function(){
     var inp=document.getElementById('newPhrase'); var v=(inp.value||'').trim(); if(!v) return;
     var exists=allPhrases().some(function(p){return p.label===v;}); if(exists){ toast('Already on your list'); inp.value=''; return; }
@@ -706,6 +786,7 @@
     for(i=0;i<list.length;i++){ e=list[i];
       if(e.kind==='testimony'){ html+='<li class="fe testimony"><span class="ic">🎉</span><div class="body"><div class="nm">The Lord has done it</div><div class="lb">'+esc(e.label||'A trust was answered')+'</div></div></li>'; }
       else if(e.kind==='join'){ html+='<li class="fe join"><span class="ic">🌿</span><div class="body"><div class="nm">'+esc(e.name)+'</div><div class="lb">joined the movement</div></div></li>'; }
+      else if(e.kind==='goal'){ html+='<li class="fe goalmet"><span class="ic">🎯</span><div class="body"><div class="nm">'+esc(e.name)+'</div><div class="lb">'+esc(e.label||'met their goal')+'</div></div></li>'; }
       else { html+='<li class="fe"><span class="ic">🙏</span><div class="body"><div class="nm">'+esc(e.name)+'</div><div class="lb">'+esc(e.label||'gave thanks')+'</div></div>'+(e.n>1?('<span class="x">×'+e.n+'</span>'):'')+'</li>'; }
     }
     host.innerHTML=html;
